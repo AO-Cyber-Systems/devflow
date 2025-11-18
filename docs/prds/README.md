@@ -139,6 +139,77 @@ Specification for bidirectional sync with external SDLC tools:
 
 ---
 
+### [PRD-007: Secrets & Environment Management](./PRD-007-SECRETS-MANAGEMENT.md)
+**1Password Integration & Environment Variables**
+
+Specification for secure secrets management across deployment modes:
+- 1Password Connect Server integration (recommended)
+- .env file fallback (always supported)
+- Per-project environment variables
+- Secret rotation workflows
+- Three-tier secret model (system, user, project)
+
+**Key Features**:
+- Priority cascade: 1Password → .env → ENV
+- Encrypted storage for OAuth tokens
+- Audit logging of secret access
+- Compliance support (SOC2, HIPAA, GDPR)
+- Developer onboarding workflows
+
+**Security**: AES-256 encryption, automatic rotation, audit trails
+
+---
+
+### [PRD-008: Deployment Architecture](./PRD-008-DEPLOYMENT-ARCHITECTURE.md)
+**Local, SaaS, and On-Premise Deployments**
+
+Specification for flexible deployment options:
+- **Local Dev**: Docker required (PostgreSQL + Qdrant)
+- **SaaS**: devflow.aocodex.ai (managed hosting)
+- **On-Premise**: Docker Compose (corporate deployments)
+- **Dedicated Cloud**: Isolated managed instances
+
+**Deployment Modes**:
+- Local development with lightweight UI
+- SaaS with multi-tenant isolation
+- On-premise behind corporate firewalls
+- Hybrid mode (local agents + hosted services)
+
+**Key Decisions**:
+- Docker as default (no SQLite fallback)
+- SaaS-first implementation priority
+- VPN and firewall support
+- Migration paths between modes
+
+**Technical Stack**: Docker, Kubernetes, PostgreSQL, Qdrant, Nginx
+
+---
+
+### [PRD-009: AOSentry Integration](./PRD-009-AOSENTRY-INTEGRATION.md)
+**Unified LLM Gateway**
+
+Specification for routing all LLM operations through AOSentry:
+- OpenAI API compatibility (drop-in replacement)
+- Automatic retry and fallback
+- Intelligent caching and cost optimization
+- Multi-provider support (OpenAI, Anthropic, OpenRouter, etc.)
+- On-premise LLM routing
+
+**Key Benefits**:
+- Single API key for all LLM access
+- Cost tracking per project/workflow
+- Automatic model routing (cost vs performance)
+- Prompt safety and filtering
+- Token usage analytics
+
+**AOSentry Features Leveraged**:
+- Automatic caching (30%+ cost savings)
+- Retry/fallback handling (99.9% success rate)
+- Budget controls and alerts
+- On-prem LLM support (Ollama, vLLM)
+
+---
+
 ## System Architecture
 
 ### High-Level Overview
@@ -461,7 +532,8 @@ Each agent works in isolated environment:
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
-| 2025-11-18 | 1.0 | Initial PRD series created | DevFlow Team |
+| 2025-11-18 | 1.0 | Initial PRD series (PRD-001 through PRD-006) created | DevFlow Team |
+| 2025-11-18 | 1.1 | Added PRD-007 (Secrets), PRD-008 (Deployment), PRD-009 (AOSentry) | DevFlow Team |
 
 ---
 
@@ -483,12 +555,15 @@ These PRDs are living documents. We welcome feedback, questions, and suggestions
 ---
 
 **Next Steps**:
-1. Review all 5 PRDs
+1. Review all 9 PRDs
 2. Discuss and refine open questions
 3. Prioritize Phase 1 features
 4. Begin technical design documents
 5. Set up development environment
 6. Start MVP implementation
+7. Configure secrets management (1Password or .env)
+8. Choose deployment mode (Local, SaaS, or On-Prem)
+9. Set up AOSentry integration
 
 ---
 
