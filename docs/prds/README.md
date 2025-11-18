@@ -116,6 +116,29 @@ Specification for the web-based user interface:
 
 ---
 
+### [PRD-006: SDLC Tool Integrations](./PRD-006-INTEGRATIONS.md)
+**Atlassian & GitHub Integration**
+
+Specification for bidirectional sync with external SDLC tools:
+- Atlassian Integration (Jira, Confluence, Bitbucket)
+- GitHub Integration (Issues, PRs, Projects, Discussions)
+- User-level OAuth authentication
+- Type hierarchy enforcement (PRD → Epic → Story → Task → Subtask)
+- Conflict resolution dashboard
+- Webhook-based real-time sync
+
+**Key Capabilities**:
+- OAuth 2.0 authentication per user
+- Bidirectional sync with hierarchy enforcement
+- Automatic custom field creation in Jira
+- Confluence as first-class knowledge source
+- GitHub Projects integration with Kanban
+- Comprehensive conflict resolution UI
+
+**Priority**: Atlassian-first, then GitHub as secondary/supplement
+
+---
+
 ## System Architecture
 
 ### High-Level Overview

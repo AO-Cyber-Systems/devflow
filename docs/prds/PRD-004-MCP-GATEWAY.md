@@ -80,6 +80,8 @@ The MCP Gateway Service provides a unified Model Context Protocol (MCP) interfac
 
 ## MCP Tool Categories
 
+The MCP Gateway provides tools across four main categories. For external system integrations (Jira, Confluence, GitHub), see **PRD-006: SDLC Tool Integrations**.
+
 ### 1. Knowledge Tools
 
 Tools for accessing the knowledge base.
@@ -640,6 +642,36 @@ async def send_message_to_agent(
     pass
 ```
 
+### 5. Integration Tools
+
+Tools for interacting with external SDLC systems (see **PRD-006: SDLC Tool Integrations**).
+
+These tools enable agents to sync DevFlow entities with Jira, Confluence, and GitHub:
+
+```python
+@mcp_tool
+async def sync_to_jira(entity_id: str) -> dict:
+    """Sync DevFlow entity to Jira (see PRD-006)."""
+    pass
+
+@mcp_tool
+async def sync_to_confluence(entity_id: str) -> dict:
+    """Sync DevFlow entity to Confluence (see PRD-006)."""
+    pass
+
+@mcp_tool
+async def sync_to_github(entity_id: str) -> dict:
+    """Sync DevFlow entity to GitHub (see PRD-006)."""
+    pass
+
+@mcp_tool
+async def get_sync_status(entity_id: str) -> dict:
+    """Get sync status across all platforms (see PRD-006)."""
+    pass
+```
+
+For complete integration tool specifications, OAuth setup, and hierarchy enforcement rules, see **PRD-006: SDLC Tool Integrations**.
+
 ---
 
 ## Protocol Implementation
@@ -1099,6 +1131,7 @@ async def test_end_to_end_workflow():
 5. **GraphQL Support**: Alternative to REST for tool execution
 6. **WebSocket Transport**: Bidirectional communication
 7. **Tool Versioning**: Support multiple versions of tools
+8. **Enhanced Integration Tools**: Bulk sync, conflict auto-resolution (see PRD-006)
 
 ---
 

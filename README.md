@@ -102,6 +102,7 @@ Workflow adapted itself!
 3. **[PRD-003: Workflow Engine](docs/prds/PRD-003-WORKFLOW-ENGINE.md)** - Phases, tasks, Kanban, Guardian
 4. **[PRD-004: MCP Gateway](docs/prds/PRD-004-MCP-GATEWAY.md)** - Protocol, tools, integrations
 5. **[PRD-005: UI Dashboard](docs/prds/PRD-005-UI-DASHBOARD.md)** - Views, components, real-time updates
+6. **[PRD-006: SDLC Tool Integrations](docs/prds/PRD-006-INTEGRATIONS.md)** - Atlassian, GitHub, bidirectional sync
 
 ### Analysis
 - **[Comparison Document](docs/prds/COMPARISON.md)** - Detailed synthesis of Archon + Hephaestus

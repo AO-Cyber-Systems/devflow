@@ -1049,6 +1049,31 @@ workflow_engine:
 
 ---
 
+## Integration with External Systems
+
+DevFlow workflows can integrate with external SDLC tools (see **PRD-006: SDLC Tool Integrations**):
+
+**Jira Integration**:
+- Tasks in DevFlow sync bidirectionally with Jira issues
+- Maintain PRD → Epic → Story → Task → Subtask hierarchy
+- Task status updates flow between systems
+- Guardian alerts can create Jira comments
+
+**GitHub Integration**:
+- Tasks map to GitHub Issues with labels
+- Kanban board syncs with GitHub Projects
+- Pull requests linked to tasks automatically
+- Workflow completion triggers GitHub milestones
+
+**Confluence Integration**:
+- Phase documentation stored in Confluence pages
+- Workflow results documented automatically
+- Guardian intervention logs saved to Confluence
+
+See PRD-006 for complete integration details including OAuth setup, conflict resolution, and hierarchy enforcement.
+
+---
+
 ## Future Enhancements
 
 1. **Workflow Templates**: Pre-built phase configurations for common patterns

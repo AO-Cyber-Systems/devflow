@@ -148,6 +148,7 @@ The Unified UI Dashboard provides a comprehensive web interface for managing kno
 - Activity feed (real-time updates via WebSocket)
 - Workflow progress bars
 - Quick actions (add source, start workflow)
+- Integration status indicators (Jira, Confluence, GitHub - see PRD-006)
 
 ### 2. Knowledge Hub View
 
@@ -378,6 +379,20 @@ Results (47 found in 123ms)
 │  │  [Save Changes]                                 │     │
 │  └──────────────────────────────────────────────────┘     │
 │                                                            │
+│  ┌─ Integrations (see PRD-006) ────────────────────┐     │
+│  │                                                  │     │
+│  │  Atlassian:       🟢 Connected (OAuth)         │     │
+│  │    - Jira:        PROJ, DEV (2 projects)       │     │
+│  │    - Confluence:  DEV space                    │     │
+│  │                                                  │     │
+│  │  GitHub:          🟢 Connected (OAuth)         │     │
+│  │    - Repo:        myorg/myrepo                 │     │
+│  │    - Projects:    3 active                     │     │
+│  │                                                  │     │
+│  │  [Connect Atlassian] [Connect GitHub]          │     │
+│  │  [Manage Integrations]                         │     │
+│  └──────────────────────────────────────────────────┘     │
+│                                                            │
 │  ┌─ System Health ─────────────────────────────────┐     │
 │  │                                                  │     │
 │  │  Knowledge Hub:    🟢 Running                   │     │
@@ -391,6 +406,12 @@ Results (47 found in 123ms)
 │                                                            │
 └────────────────────────────────────────────────────────────┘
 ```
+
+**Integration Management** (see PRD-006 for details):
+- OAuth connection setup for Atlassian and GitHub
+- Configure space/project mappings
+- View sync status and resolve conflicts
+- Manage webhook registrations
 
 ---
 
@@ -917,6 +938,43 @@ function TaskCard({ task }: TaskCardProps) {
 
 ---
 
+## Integration Dashboard View (PRD-006)
+
+**Purpose**: Manage external system integrations and resolve sync conflicts.
+
+**Key Features**:
+- OAuth connection management (Atlassian, GitHub)
+- Sync status monitoring across all platforms
+- Conflict resolution interface (see PRD-006 Section on Conflict Resolution)
+- Webhook health monitoring
+- Integration analytics (sync success rates, latency)
+
+**Example Conflict Resolution UI**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Sync Conflicts                                    [3 Pending]│
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│ ⚠️ Hierarchy Violation - Jira Story PROJ-123              │
+│ ┌───────────────────────────────────────────────────────┐ │
+│ │ Story "Implement login" has no Epic parent           │ │
+│ │                                                       │ │
+│ │ Recommended: Link to Epic                            │ │
+│ │ ○ Link to PROJ-100: "User Auth Epic"                │ │
+│ │ ○ Link to PROJ-50: "Mobile App Epic"                │ │
+│ │ ○ Create new Epic in DevFlow                        │ │
+│ │ ○ Keep in Jira only (don't sync)                    │ │
+│ │                                                       │ │
+│ │ [Resolve Conflict]          [Ignore]                 │ │
+│ └───────────────────────────────────────────────────────┘ │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+For complete integration UI specifications, see **PRD-006: SDLC Tool Integrations**.
+
+---
+
 ## Future Enhancements
 
 1. **Mobile App**: Native iOS/Android companion app
@@ -926,6 +984,7 @@ function TaskCard({ task }: TaskCardProps) {
 5. **Analytics Dashboard**: Advanced metrics and insights
 6. **Export/Import**: Workflow and knowledge export/import
 7. **API Playground**: Interactive API testing interface
+8. **Integration Templates**: Pre-configured integration setups (see PRD-006)
 
 ---
 
