@@ -121,9 +121,9 @@ The Knowledge Hub Service is DevFlow's central repository for all project-relate
 
 ## Core Features
 
-### 1. Web Crawling
+### 1. Web Crawling & Confluence Integration
 
-**Description**: Intelligent web crawling that automatically detects documentation structure and extracts content.
+**Description**: Intelligent web crawling that automatically detects documentation structure and extracts content, plus native Confluence integration for enterprise knowledge bases.
 
 **Capabilities**:
 - Sitemap detection and parsing
@@ -132,6 +132,12 @@ The Knowledge Hub Service is DevFlow's central repository for all project-relate
 - Respect for robots.txt
 - Rate limiting and politeness
 - Incremental updates (detect changes)
+- **Confluence Integration** (via PRD-006):
+  - OAuth-based authentication per user
+  - Crawl Confluence spaces as knowledge sources
+  - Sync pages, comments, and attachments
+  - Bidirectional sync: DevFlow updates → Confluence pages
+  - Maintain links and structure from Confluence
 
 **Technical Details**:
 ```python
@@ -830,6 +836,30 @@ knowledge_hub:
 - Daily searches per user: > 20
 - Knowledge source growth rate: > 10 sources/week
 - Agent knowledge access rate: > 100 queries/hour
+
+---
+
+## Confluence as Knowledge Source
+
+With the **Atlassian Integration** (PRD-006), Confluence becomes a first-class knowledge source:
+
+1. **Add Confluence Space as Source**:
+   - User authenticates via OAuth
+   - Select Confluence space to sync
+   - DevFlow crawls all pages in the space
+   - Pages indexed as knowledge chunks
+
+2. **Bidirectional Knowledge Sync**:
+   - DevFlow can read Confluence pages for context
+   - Agents can update Confluence pages with findings
+   - Updates maintain page structure and formatting
+
+3. **Automatic Updates**:
+   - Webhook notifications when Confluence pages change
+   - Incremental re-indexing of changed content
+   - Preserves knowledge freshness
+
+See **PRD-006: SDLC Tool Integrations** for complete Confluence integration details.
 
 ---
 
