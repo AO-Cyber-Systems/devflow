@@ -171,11 +171,12 @@ DevFlow addresses these challenges through three integrated systems:
    - Performance analytics
    - Cost tracking
 
-4. **Integration Ecosystem**
-   - GitHub integration
-   - CI/CD pipeline hooks
-   - Slack notifications
-   - Webhook support
+4. **SDLC Tool Integrations** (See PRD-006)
+   - **Atlassian Integration** (Jira, Confluence, Bitbucket)
+   - **GitHub Integration** (Issues, PRs, Projects)
+   - Bidirectional sync with hierarchy enforcement
+   - User-level OAuth authentication
+   - Conflict resolution dashboard
 
 ### Phase 3: Enterprise
 
@@ -284,26 +285,26 @@ DevFlow addresses these challenges through three integrated systems:
 
 ## Development Roadmap
 
-### Q1 2025: MVP Release
+### Q1 2026: MVP Release
 - Core knowledge management
 - Basic workflow orchestration
 - Essential MCP tools
 - Minimal viable UI
 - Documentation and examples
 
-### Q2 2025: Feature Enhancement
+### Q2 2026: Feature Enhancement
 - Advanced RAG strategies
 - Workflow templates
 - Enhanced observability
-- Integration ecosystem foundations
+- **SDLC Tool Integrations** (Atlassian, GitHub - see PRD-006)
 
-### Q3 2025: Enterprise Readiness
+### Q3 2026: Enterprise Readiness
 - Multi-tenancy
 - SSO and RBAC
 - Scalability improvements
 - Compliance certifications
 
-### Q4 2025: Ecosystem Growth
+### Q4 2026: Ecosystem Growth
 - Plugin system
 - Community templates
 - Advanced analytics
