@@ -377,6 +377,7 @@ class GuardianMonitor:
     def __init__(self, interval_seconds: int = 60):
         self.interval = interval_seconds
         self.coherence_threshold = 0.7  # 70% alignment required
+        self.llm_client = AOSentryClient()  # Unified LLM gateway
     
     async def monitor_agents(self):
         """Continuously monitor all active agents."""
@@ -388,7 +389,7 @@ class GuardianMonitor:
                 task = self.get_agent_task(agent.id)
                 phase = self.get_phase(task.phase_id)
                 
-                # Analyze alignment
+                # Analyze alignment via AOSentry
                 coherence = self.analyze_coherence(
                     trajectory=trajectory,
                     phase_instructions=phase.additional_notes,
@@ -408,47 +409,14 @@ class GuardianMonitor:
         done_definitions: List[str]
     ) -> float:
         """
-        Use LLM to score agent alignment with phase goals.
+        Use AOSentry to score agent alignment with phase goals.
         
-        Prompt:
+        Prompt sent to AOSentry:
         "Agent is working in Phase X with these instructions:
         {phase_instructions}
-        
-        Done definitions:
-        {done_definitions}
-        
-        Agent's recent actions:
-        {trajectory}
-        
-        Score alignment (0.0-1.0):
-        - 1.0 = Perfectly following instructions
-        - 0.5 = Somewhat aligned but missing steps
-        - 0.0 = Completely off track
-        
-        Return: Score and brief explanation"
+        ...
         """
-        pass
-    
-    def intervene(self, agent: Agent, phase: Phase, coherence: float):
-        """Send corrective message to agent."""
-        
-        message = f"""
-        ⚠️ GUARDIAN INTERVENTION ⚠️
-        
-        Coherence score: {coherence:.1%}
-        
-        You're working in Phase {phase.id}: {phase.name}
-        
-        MANDATORY STEPS YOU MUST FOLLOW:
-        {self._format_done_definitions(phase.done_definitions)}
-        
-        ADDITIONAL GUIDANCE:
-        {phase.additional_notes}
-        
-        Please review your approach and ensure you're following all mandatory steps.
-        """
-        
-        self.send_message_to_agent(agent.id, message)
+        return self.llm_client.chat_completion(...)
 ```
 
 **Intervention Example**:
@@ -474,9 +442,23 @@ Agent corrects course:
 
 ### 5. Agent Runtime
 
-**Purpose**: Spawn and manage isolated agent sessions.
+**Purpose**: Spawn and manage isolated agent sessions across deployment modes.
 
-**Isolation Strategy**:
+**Deployment Modes**:
+
+**A. Local Mode (Development)**
+- **Host**: User's local machine (Mac/Linux)
+- **Isolation**: tmux sessions + Git worktrees
+- **Advantages**: Zero latency, direct access to local tools, free
+- **Ideal For**: Single developers, offline work
+
+**B. Hosted Mode (SaaS/Enterprise)**
+- **Host**: DevFlow Kubernetes Cluster
+- **Isolation**: Ephemeral Docker containers (Firecracker microVMs planned)
+- **Advantages**: Scalable, secure, pre-configured environments
+- **Ideal For**: Teams, complex workflows, standard environments
+
+**Isolation Strategy (Local Mode)**:
 ```python
 class AgentRuntime:
     """Manages agent lifecycle and isolation."""
@@ -494,84 +476,6 @@ class AgentRuntime:
         2. Git worktree (separate code copy)
         3. Virtual environment (separate dependencies)
         """
-        
-        # Create git worktree
-        worktree_path = self.create_worktree(
-            branch=f"agent-{task.id}",
-            base=phase.working_directory
-        )
-        
-        # Create tmux session
-        session_name = f"agent-{task.id}"
-        self.create_tmux_session(session_name)
-        
-        # Launch agent in tmux
-        self.launch_agent_in_tmux(
-            session=session_name,
-            working_dir=worktree_path,
-            task=task,
-            phase=phase
-        )
-        
-        return Agent(
-            id=f"agent-{task.id}",
-            task_id=task.id,
-            phase_id=phase.id,
-            tmux_session=session_name,
-            worktree_path=worktree_path,
-            status=AgentStatus.ACTIVE
-        )
-    
-    def create_worktree(self, branch: str, base: str) -> str:
-        """Create isolated git worktree."""
-        worktree_path = f"/tmp/devflow_worktrees/{branch}"
-        subprocess.run([
-            "git", "worktree", "add",
-            worktree_path, "-b", branch
-        ])
-        return worktree_path
-    
-    def launch_agent_in_tmux(
-        self,
-        session: str,
-        working_dir: str,
-        task: Task,
-        phase: Phase
-    ):
-        """Launch Claude Code / OpenCode in tmux."""
-        
-        # Prepare context
-        context = self._prepare_agent_context(task, phase)
-        
-        # Launch CLI tool
-        cmd = f"""
-        cd {working_dir} && \\
-        claude --model sonnet --dangerously-skip-permissions \\
-        --prompt "
-        {context}
-        
-        YOUR TASK:
-        {task.description}
-        
-        PHASE INSTRUCTIONS:
-        {phase.additional_notes}
-        
-        MANDATORY STEPS:
-        {self._format_done_definitions(phase.done_definitions)}
-        
-        You have access to these MCP tools:
-        - create_task: Spawn new tasks in any phase
-        - update_task_status: Mark your task as done
-        - search_knowledge: Search project documentation
-        - save_memory: Save important discoveries
-        
-        Start working!
-        "
-        """
-        
-        subprocess.run([
-            "tmux", "send-keys", "-t", session, cmd, "Enter"
-        ])
 ```
 
 ---
@@ -898,96 +802,14 @@ def get_tasks(
 
 ## Data Models
 
-### Database Schema
+### Database Schema (PostgreSQL via Docker)
+
+**Note**: SQLite is not supported. DevFlow requires PostgreSQL with `pgvector` running in Docker for full functionality.
 
 ```sql
 -- Phases
 CREATE TABLE phases (
     id INTEGER PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    done_definitions JSONB NOT NULL,
-    additional_notes TEXT,
-    working_directory TEXT,
-    validation_criteria JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tasks
-CREATE TABLE tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    description TEXT NOT NULL,
-    phase_id INTEGER REFERENCES phases(id),
-    status VARCHAR(50) NOT NULL,
-    priority VARCHAR(20) NOT NULL,
-    assigned_agent_id VARCHAR(100),
-    created_by VARCHAR(100) NOT NULL,
-    parent_task_id UUID REFERENCES tasks(id),
-    tags TEXT[],
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    started_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ,
-    result TEXT
-);
-
--- Task dependencies (blocking relationships)
-CREATE TABLE task_dependencies (
-    task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
-    blocks_task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
-    PRIMARY KEY (task_id, blocks_task_id)
-);
-
--- Agents
-CREATE TABLE agents (
-    id VARCHAR(100) PRIMARY KEY,
-    phase_id INTEGER REFERENCES phases(id),
-    task_id UUID REFERENCES tasks(id),
-    status VARCHAR(50) NOT NULL,
-    tmux_session VARCHAR(100),
-    worktree_path TEXT,
-    coherence_score FLOAT,
-    last_trajectory TEXT,
-    spawned_at TIMESTAMPTZ DEFAULT NOW(),
-    last_active_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Agent trajectories (for Guardian monitoring)
-CREATE TABLE agent_trajectories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    agent_id VARCHAR(100) REFERENCES agents(id) ON DELETE CASCADE,
-    action TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Guardian interventions
-CREATE TABLE guardian_interventions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    agent_id VARCHAR(100) REFERENCES agents(id),
-    phase_id INTEGER REFERENCES phases(id),
-    coherence_score FLOAT,
-    reason TEXT,
-    message TEXT,
-    timestamp TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Workflow runs
-CREATE TABLE workflow_runs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(200),
-    status VARCHAR(50),
-    started_at TIMESTAMPTZ DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    result_criteria TEXT,
-    final_result TEXT
-);
-
--- Indexes
-CREATE INDEX idx_tasks_phase ON tasks(phase_id);
-CREATE INDEX idx_tasks_status ON tasks(status);
-CREATE INDEX idx_tasks_assigned_agent ON tasks(assigned_agent_id);
-CREATE INDEX idx_agents_status ON agents(status);
-CREATE INDEX idx_trajectories_agent ON agent_trajectories(agent_id);
 ```
 
 ---
