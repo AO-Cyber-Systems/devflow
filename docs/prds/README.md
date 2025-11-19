@@ -1,15 +1,23 @@
 # DevFlow Product Requirements Documents (PRDs)
 
-**Project**: DevFlow - Adaptive AI Development Orchestration Platform  
-**Version**: 1.0  
-**Status**: Draft  
+**Project**: DevFlow - Complete AI-Native Development Platform  
+**Version**: 2.0  
+**Status**: Active Development  
 **Last Updated**: November 18, 2025
 
 ---
 
 ## Overview
 
-This directory contains the comprehensive Product Requirements Documents for DevFlow, a next-generation development workflow orchestration platform that synthesizes the best capabilities of Archon (knowledge management + MCP server) and Hephaestus (adaptive semi-structured workflows).
+This directory contains the comprehensive Product Requirements Documents for DevFlow, a complete AI-native development platform combining:
+
+1. **DevFlow Hub** - AI Orchestration & Knowledge Management ($220k, 12 months)
+2. **DevFlow Code** - Git Hosting, CI/CD, Universal Package Registry ($540k, 18 months)
+3. **DevFlow Runtime** - Complete Backend Platform ($1.36M, 24 months)
+
+**Total Platform Investment**: $2.22M over 24 months
+
+DevFlow synthesizes capabilities from Archon (knowledge management + MCP) and Hephaestus (adaptive workflows), while adding complete source control, CI/CD, and backend services to create the only self-hosted platform combining AI development, Git hosting, and backend services.
 
 ---
 
@@ -207,6 +215,121 @@ Specification for routing all LLM operations through AOSentry:
 - Retry/fallback handling (99.9% success rate)
 - Budget controls and alerts
 - On-prem LLM support (Ollama, vLLM)
+
+---
+
+### [PRD-010: DevFlow Code](./PRD-010-DEVFLOW-CODE.md)
+**Git Hosting, CI/CD, and Universal Package Registry**
+
+Specification for complete source code and artifact management:
+- Git server (Gitea-based fork with AI enhancements)
+- Pull/Merge request system with AI-powered code review
+- GitHub Actions-compatible CI/CD
+- Universal Package Registry (npm, pip, Docker, apt, etc.)
+- Project management and issue tracking
+- Security scanning and vulnerability detection
+
+**Key Features**:
+- Self-hosted Git with AI code review
+- Language-agnostic package registry
+- Automated CI/CD pipelines
+- Integration with DevFlow Hub workflows
+
+**Investment**: $540k over 18 months
+
+---
+
+### [PRD-011: DevFlow Runtime](./PRD-011-DEVFLOW-RUNTIME.md)
+**Complete Backend Platform**
+
+Specification for comprehensive backend services:
+- Supabase foundation (Database, Auth, Storage, Realtime, Edge Functions)
+- Application deployment (git push deploy with buildpacks)
+- Background workers and scheduled jobs
+- Observability stack (Prometheus, Loki, Tempo, Sentry)
+- Auto-configuration with DevFlow Code
+
+**Core Services**:
+- PostgreSQL database with automatic backups
+- Authentication and authorization
+- Object storage
+- Real-time subscriptions
+- Serverless functions
+- Container deployment
+
+**Investment**: $1.15M over 24 months (excluding Analytics)
+
+---
+
+### [PRD-012: DevFlow Analytics](./PRD-012-DEVFLOW-ANALYTICS.md)
+**PostHog Fork for Product Analytics**
+
+Specification for comprehensive product analytics:
+- Feature flags integrated with billing/subscriptions
+- A/B testing for data-driven product decisions
+- Session replay for deep user understanding
+- Funnel analysis and conversion tracking
+- AI-powered churn prediction
+- PostgreSQL + TimescaleDB (unified with application data)
+
+**Key Innovation**: Feature flags that control billing/feature access, enabling sophisticated pricing tiers and gradual rollouts.
+
+**Migration Strategy**: Fork PostHog, replace ClickHouse with PostgreSQL + TimescaleDB for simpler operations and unified queries.
+
+**Investment**: $210k over 6 months (Month 19-24)
+
+---
+
+### [PRD-013: Additional Platform Services](./PRD-013-PLATFORM-SERVICES.md)
+**Search, Graph Database, and Billing**
+
+Specification for supporting platform services:
+- **Vespa Search**: Unified full-text, vector, and hybrid search
+- **Neo4j Knowledge Graph**: Relationship mapping for code dependencies
+- **Stripe Integration**: Billing and subscription management
+- **Unified SDK**: Single client library for all DevFlow services
+
+**Why These Services**:
+- Vespa: Better search than Qdrant + PostgreSQL combined
+- Neo4j: Code dependency graphs, impact analysis
+- Stripe: Standard billing platform
+
+**Investment**: $220k over 9 months
+
+---
+
+### [PRD-014: DevFlow CLI](./PRD-014-DEVFLOW-CLI.md)
+**Unified Command-Line Interface**
+
+Specification for comprehensive CLI tool:
+- Hub commands (knowledge, workflows, agents)
+- Code commands (git, ci, packages, deploy)
+- Runtime commands (db, auth, storage, functions)
+- Analytics commands (events, features, experiments)
+
+**Key Features**:
+- Single binary for all DevFlow operations
+- Works in local and hosted modes
+- Plugin architecture for extensions
+- Interactive setup wizard
+
+**Development**: Included in each product's cost
+
+---
+
+### [PRD-015: DevFlow Desktop](./PRD-015-DEVFLOW-DESKTOP.md)
+**Electron-Based Desktop Application**
+
+Specification for native desktop experience:
+- Complete local stack management
+- Offline-first development
+- Cloud sync when connected
+- Integrated terminal and editor
+- Visual workflow designer
+
+**Target Audience**: Developers who prefer desktop apps over web UIs
+
+**Investment**: $100k over 6 months (optional)
 
 ---
 
@@ -528,12 +651,78 @@ Each agent works in isolated environment:
 
 ---
 
+## Complete Platform Architecture
+
+DevFlow has evolved from a single AI orchestration tool into a **complete AI-native development platform** with three integrated products:
+
+### Product Structure
+
+```
+DevFlow Platform ($2.22M over 24 months)
+│
+├── DevFlow Hub ($220k, 12 months)
+│   ├── Knowledge Hub - PRD-002
+│   ├── Workflow Engine - PRD-003
+│   ├── MCP Gateway - PRD-004
+│   ├── UI Dashboard - PRD-005
+│   └── Integrations - PRD-006
+│
+├── DevFlow Code ($540k, 18 months)
+│   └── Git + CI/CD + Package Registry - PRD-010
+│
+└── DevFlow Runtime ($1.36M, 24 months)
+    ├── Supabase + App Deployment - PRD-011
+    ├── DevFlow Analytics (PostHog fork) - PRD-012
+    └── Platform Services (Search, Graph, Billing) - PRD-013
+
+Supporting Tools:
+├── DevFlow CLI - PRD-014
+└── DevFlow Desktop - PRD-015 (optional)
+
+Cross-Cutting Concerns:
+├── Secrets Management - PRD-007
+├── Deployment Architecture - PRD-008
+└── AOSentry Integration - PRD-009
+```
+
+### PRD Organization
+
+**Core Platform** (4 PRDs):
+- PRD-001: System Overview *(needs update)*
+- PRD-007: Secrets Management ✅
+- PRD-008: Deployment Architecture ✅
+- PRD-009: AOSentry Integration ✅
+
+**DevFlow Hub** (5 PRDs):
+- PRD-002: Knowledge Hub *(needs update)*
+- PRD-003: Workflow Engine *(needs update)*
+- PRD-004: MCP Gateway *(needs update)*
+- PRD-005: UI Dashboard *(needs update)*
+- PRD-006: Integrations *(needs update)*
+
+**DevFlow Code** (1 PRD):
+- PRD-010: DevFlow Code *(needs creation)*
+
+**DevFlow Runtime** (3 PRDs):
+- PRD-011: DevFlow Runtime *(needs creation)*
+- PRD-012: DevFlow Analytics *(needs creation)*
+- PRD-013: Platform Services *(needs creation)*
+
+**Developer Tools** (2 PRDs):
+- PRD-014: DevFlow CLI *(needs creation)*
+- PRD-015: DevFlow Desktop *(needs creation)*
+
+**Total**: 15 PRDs (4 complete, 5 need updates, 6 need creation)
+
+---
+
 ## Document History
 
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
 | 2025-11-18 | 1.0 | Initial PRD series (PRD-001 through PRD-006) created | DevFlow Team |
 | 2025-11-18 | 1.1 | Added PRD-007 (Secrets), PRD-008 (Deployment), PRD-009 (AOSentry) | DevFlow Team |
+| 2025-11-18 | 2.0 | Platform expansion: Added PRD-010 through PRD-015, complete platform vision | DevFlow Team |
 
 ---
 
@@ -555,15 +744,18 @@ These PRDs are living documents. We welcome feedback, questions, and suggestions
 ---
 
 **Next Steps**:
-1. Review all 9 PRDs
-2. Discuss and refine open questions
-3. Prioritize Phase 1 features
-4. Begin technical design documents
-5. Set up development environment
-6. Start MVP implementation
-7. Configure secrets management (1Password or .env)
-8. Choose deployment mode (Local, SaaS, or On-Prem)
-9. Set up AOSentry integration
+1. Complete PRD updates and creation (15 total PRDs)
+2. Update PRD-001 with three-product platform overview
+3. Create PRD-010 (DevFlow Code) - highest priority new PRD
+4. Create PRD-011 (DevFlow Runtime) - second priority
+5. Create PRD-012 (DevFlow Analytics) - third priority
+6. Update PRDs 002-006 with AOSentry, Docker, and local/hosted clarifications
+7. Create PRD-013, PRD-014, PRD-015 for remaining services
+8. Review all PRDs for consistency and cross-references
+9. Begin technical design documents for Phase 1 (DevFlow Hub)
+10. Set up development environment
+
+**See**: [PRD Update Plan](../PRD_UPDATE_PLAN.md) for complete expansion strategy
 
 ---
 
