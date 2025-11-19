@@ -158,19 +158,22 @@ PRD (Product Requirements Document)
 - Pages organized by PRD → Epic → Story hierarchy
 - Use page tree to mirror DevFlow hierarchy
 
-### Mapping to GitHub
+### Mapping to GitHub & DevFlow Code
 
-#### GitHub Structure Mapping
+DevFlow treats GitHub and **DevFlow Code** (PRD-010) as interchangeable Git providers.
 
-| DevFlow Type | GitHub Entity | Additional Info |
-|--------------|---------------|-----------------|
-| **PRD** | Milestone + Discussion | Discussion links to Confluence PRD |
-| **Epic** | Milestone OR Project | Use GitHub Projects (beta) for Kanban |
-| **Story** | Issue + `story` label | Added to Epic Milestone/Project |
-| **Task** | Issue + `task` label | Linked to parent Story |
-| **Subtask** | Checklist in Task Issue | OR separate Issue with `subtask` label |
+| DevFlow Type | Git Entity | Notes |
+|--------------|------------|-------|
+| **PRD** | Milestone | Links to documentation |
+| **Epic** | Project | Kanban board for tracking |
+| **Story** | Issue | `story` label |
+| **Task** | Issue | `task` label, linked to Story |
+| **Code** | Repository | Synced to DevFlow Code |
 
-**GitHub Labels (Created by DevFlow):**
+**DevFlow Code Mirroring**:
+- GitHub repositories can be mirrored to DevFlow Code
+- PRs in GitHub sync to DevFlow Code PRs
+- AI Code Review results post back to GitHub PRs
 ```
 devflow-prd       (color: #7B68EE)
 devflow-epic      (color: #FF6B6B)
@@ -208,10 +211,25 @@ devflow-conflict  (color: #FF6B6B)
 
 ## OAuth & Authentication
 
+### Token Storage Strategy
+
+DevFlow prioritizes security for sensitive OAuth tokens using a tiered approach (see **PRD-007: Secrets Management**).
+
+**1. 1Password Connect (Recommended)**
+- Tokens stored in 1Password Vault
+- Accessed via Connect Server API
+- Audit logs provided by 1Password
+- Best for Enterprise/Production
+
+**2. Encrypted Database (Fallback)**
+- Tokens stored in PostgreSQL `user_integrations` table
+- AES-256-GCM encryption
+- Key management via environment variables
+- Suitable for Local/SaaS MVP
+
 ### Atlassian OAuth 2.0 (3LO)
 
 **OAuth Flow:**
-
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. User clicks "Connect Atlassian" in DevFlow Settings     │
@@ -408,15 +426,23 @@ CREATE INDEX idx_user_integrations_expires ON user_integrations(token_expires_at
 
 ---
 
-## Synchronization Architecture
+## Webhook Architecture
+
+### Deployment Modes
+
+**1. SaaS / Hosted (Production)**
+- Direct HTTPS endpoints
+- `https://api.devflow.dev/webhooks/jira`
+- Secured by TLS and signature verification
+
+**2. Local Development (Dev)**
+- Webhook Proxy (e.g., smee.io or ngrok) required
+- DevFlow CLI automatically starts proxy tunnel
+- `smee -u https://smee.io/devflow-local -t http://localhost:8000/webhooks/jira`
 
 ### Sync Mechanisms
 
 **1. Webhooks (Primary - Real-time)**
-
-DevFlow registers webhooks with external systems to receive real-time notifications.
-
-**Jira Webhooks:**
 ```
 Webhook URL: https://devflow.example.com/api/webhooks/jira
 Events:
