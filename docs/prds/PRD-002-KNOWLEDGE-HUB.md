@@ -304,10 +304,10 @@ class ChunkingStrategy:
 ```python
 def semantic_search(query: str, top_k: int = 10) -> List[Result]:
     """
-    Vector similarity search.
+    Vector similarity search via AOSentry.
     
     Steps:
-    1. Embed query
+    1. Embed query using AOSentry (handles caching & provider routing)
     2. Search Qdrant for similar vectors
     3. Return top-k results
     """
@@ -332,7 +332,50 @@ def hybrid_search(query: str, top_k: int = 10) -> List[Result]:
 ```python
 def reranked_search(query: str, top_k: int = 10) -> List[Result]:
     """
-    Search with LLM reranking.
+    Search with LLM reranking via AOSentry.
+    
+    Steps:
+    1. Initial retrieval (hybrid search)
+    2. Get top-50 candidates
+    3. Rerank with LLM based on relevance
+    4. Return top-k
+    """
+    pass
+```
+
+**D. Contextual Embeddings**
+```python
+def contextual_search(query: str, context: str) -> List[Result]:
+    """
+    Search with additional context.
+    
+    Uses:
+    - Previous conversation
+    - Current task context
+    - Project-specific context
+    """
+    pass
+```
+
+**B. Hybrid Search**
+```python
+def hybrid_search(query: str, top_k: int = 10) -> List[Result]:
+    """
+    Combined vector + keyword search.
+    
+    Steps:
+    1. Vector search (semantic)
+    2. Keyword search (BM25)
+    3. Merge and rank results
+    """
+    pass
+```
+
+**C. Reranked Search**
+```python
+def reranked_search(query: str, top_k: int = 10) -> List[Result]:
+    """
+    Search with LLM reranking via AOSentry.
     
     Steps:
     1. Initial retrieval (hybrid search)
@@ -391,6 +434,40 @@ class Chunk:
     metadata: Dict[str, Any]
     position: int  # position in source
     parent_chunk_id: Optional[str]  # for hierarchical chunks
+```
+
+---
+
+## Deployment (Docker Only)
+
+To ensure consistency and performance, the Knowledge Hub is designed to run on Docker (Local/Prod). SQLite is **not supported**.
+
+### Docker Compose Stack
+
+```yaml
+services:
+  knowledge-hub:
+    image: devflow/knowledge-hub:latest
+    depends_on:
+      - qdrant
+      - postgres
+      - redis
+    environment:
+      - EMBEDDING_PROVIDER=aosentry
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/devflow
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  postgres:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
 ```
 
 ---
@@ -698,19 +775,23 @@ CREATE INDEX idx_examples_language ON code_examples(language);
 ### Environment Variables
 
 ```bash
-# LLM Configuration
-OPENAI_API_KEY=sk-...
-EMBEDDING_MODEL=text-embedding-3-large
+# LLM Configuration (via AOSentry)
+AOSENTRY_API_KEY=ae-...
+AOSENTRY_URL=https://aosentry.aocodex.ai/v1
+
+# Embedding Provider (hosted or local)
+EMBEDDING_PROVIDER=aosentry  # or 'local'
+EMBEDDING_MODEL=text-embedding-3-large  # or 'bge-m3' for local
 EMBEDDING_BATCH_SIZE=100
 
-# Vector Store
-QDRANT_URL=http://localhost:6333
+# Vector Store (Qdrant via Docker)
+QDRANT_URL=http://qdrant:6333
 QDRANT_COLLECTION=devflow_knowledge
 QDRANT_API_KEY=  # optional
 
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/devflow
-REDIS_URL=redis://localhost:6379/0
+# Database (PostgreSQL via Docker)
+DATABASE_URL=postgresql://user:pass@postgres:5432/devflow
+REDIS_URL=redis://redis:6379/0
 
 # Crawler
 CRAWLER_MAX_WORKERS=5
