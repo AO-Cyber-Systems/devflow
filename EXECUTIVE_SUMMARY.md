@@ -1,398 +1,118 @@
 # DevFlow: Executive Summary
 
-**Vision**: The comprehensive command center for AI-powered software development
+**Vision**: The complete AI-native development platform combining orchestration, code, and runtime.
 
-**Status**: Planning Phase  
-**Date**: November 18, 2025
+**Status**: Architecture Design Complete  
+**Date**: November 18, 2025  
+**Total Investment**: $2.22M over 24 months
 
 ---
 
 ## What is DevFlow?
 
-DevFlow is a next-generation development workflow orchestration platform that enables AI agents to autonomously build software with comprehensive project context and intelligent coordination. It combines the best capabilities from two leading open-source projects:
+DevFlow is a comprehensive, self-hosted software development platform that integrates three critical pillars into a single cohesive system:
 
-- **Archon**: Knowledge management and MCP server capabilities
-- **Hephaestus**: Adaptive semi-structured workflow execution
+1.  **DevFlow Hub**: AI orchestration and knowledge management (Evolution of Archon + Hephaestus).
+2.  **DevFlow Code**: Git hosting, CI/CD, and universal package registry (Next-gen Gitea).
+3.  **DevFlow Runtime**: Complete backend platform with database, auth, and deployment (Supabase + PaaS).
+
+Unlike disjointed tools (GitHub + Jira + Vercel + Supabase), DevFlow provides a unified environment where AI agents have full access to code, context, and infrastructure, enabling truly autonomous software development with complete data sovereignty.
 
 ---
 
 ## The Core Problem
 
-Current AI-assisted development tools face three critical challenges:
+Current AI development tools are hampered by fragmentation:
 
-1. **Context Fragmentation**: AI assistants lack access to comprehensive project knowledge
-2. **Rigid Workflows**: Traditional systems require predefined tasks that break when reality diverges  
-3. **Coordination Chaos**: Multiple AI agents working simultaneously create conflicts and duplicate work
+1.  **Context Blindness**: AI coding assistants (Cursor, Copilot) see code but lack deep knowledge of architecture, decisions, and deployment.
+2.  **Rigid Workflows**: Traditional agent frameworks require pre-defined tasks that break when reality diverges.
+3.  **Siloed Infrastructure**: Code lives in GitHub, data in Supabase, deployment in Vercel—AI agents struggle to coordinate across these boundaries.
+4.  **Vendor Lock-in**: Cloud-only solutions prevent true data sovereignty for enterprise use cases.
 
 ---
 
 ## The DevFlow Solution
 
-### 1. Comprehensive Knowledge Hub
-- Web crawling with automatic sitemap detection
-- Multi-format document processing (PDF, Word, Markdown, Code)
-- Advanced semantic search with RAG (Retrieval-Augmented Generation)
-- Code example extraction and indexing
-- Real-time knowledge updates
+DevFlow creates a vertically integrated stack optimized for AI agents:
 
-**Impact**: AI agents have access to all project documentation, patterns, and decisions
+### 1. DevFlow Hub ($220k)
+*The Brain*
+- **Knowledge Hub**: Ingests docs, crawls web, indexes code for RAG.
+- **Adaptive Workflows**: Semi-structured phases where agents dynamically create tasks.
+- **Guardian**: AI monitoring system that ensures agent quality and coherence.
+- **MCP Gateway**: Unified interface for all AI agents (Claude Code, OpenCode).
 
-### 2. Adaptive Workflow Engine
-- Semi-structured phases (Analysis → Implementation → Validation)
-- Agents dynamically create tasks based on discoveries
-- Kanban board coordination prevents conflicts
-- Guardian monitoring ensures quality
-- Git worktree isolation for safe parallel execution
+### 2. DevFlow Code ($540k)
+*The Source*
+- **Git Server**: Self-hosted repositories with AI-powered code review.
+- **CI/CD**: GitHub Actions-compatible pipelines.
+- **Universal Registry**: Single registry for npm, pip, Docker, apt, and more.
+- **Security**: Integrated SAST and vulnerability scanning.
 
-**Impact**: Workflows adapt to reality instead of breaking when reality diverges from predictions
-
-### 3. Unified Orchestration
-- Single MCP (Model Context Protocol) server
-- Combined tools for knowledge and workflow management
-- Real-time UI dashboard
-- Cross-cutting observability
-
-**Impact**: Everything works together seamlessly with comprehensive visibility
+### 3. DevFlow Runtime ($1.36M)
+*The Infrastructure*
+- **Backend Services**: Managed PostgreSQL, Auth, Storage, Realtime (Supabase foundation).
+- **App Deployment**: Heroku-style "git push" deployment with auto-provisioning.
+- **Observability**: Unified metrics, logs, and traces.
+- **Platform Services**: Advanced search (Vespa), Graph DB (Neo4j), and Billing (Stripe).
 
 ---
 
-## Key Innovation: Self-Building Workflows
+## Key Innovation: Adaptive AI Orchestration
 
-**Traditional Approach** (Rigid):
-```
-Developer predicts → Defines every task → Agents execute
-Problem: Breaks when agents discover something unexpected
-```
+**Traditional**: Human defines tasks → AI executes blindly.  
+**DevFlow**: Human defines *phases* → AI explores & creates tasks → AI executes & validates.
 
-**DevFlow Approach** (Adaptive):
-```
-Developer defines phases → Agents discover needs → Create tasks dynamically
-Benefit: Workflows branch and adapt based on actual discoveries
-```
-
-### Example Workflow Evolution
-
-```
-1. Phase 1 Agent reads requirements
-   ↓
-   Creates 5 implementation tasks (one per component)
-
-2. Five Phase 2 Agents build in parallel
-   ↓
-   Each creates validation tasks
-
-3. Phase 3 Agent testing discovers optimization opportunity
-   ↓
-   Creates NEW Phase 1 investigation task (workflow branches!)
-
-4. Investigation agent confirms pattern
-   ↓
-   Creates Phase 2 implementation task
-
-5. Implementation applied, validated
-   ↓
-   Workflow adapted based on discovery
-```
-
-**The workflow built itself based on what agents actually found, not what was predicted upfront.**
+By combining the **Knowledge Hub** (context) with the **Workflow Engine** (coordination), DevFlow enables agents to handle complex, multi-step engineering tasks that span across code changes, database migrations, and infrastructure updates.
 
 ---
 
-## Technology Stack
+## Investment & Roadmap
 
-### Backend
-- **Language**: Python 3.10+
-- **Framework**: FastAPI (async, modern)
-- **Database**: PostgreSQL + PGVector
-- **Vector Store**: Qdrant
-- **Real-time**: Socket.IO
+**Total**: $2.22M over 24 months
 
-### Frontend
-- **Framework**: React + TypeScript
-- **Build**: Vite
-- **Styling**: TailwindCSS
-- **State**: Zustand + React Query
+### Phase 1: Foundation (Months 1-12)
+**Focus**: DevFlow Hub MVP
+- Deliverables: Knowledge Hub, Workflow Engine, MCP Gateway, UI Dashboard.
+- Goal: Enable AI agents to plan and execute complex workflows.
 
-### AI/ML
-- **Providers**: OpenAI, Anthropic, OpenRouter
-- **Agent Runtime**: Claude Code, OpenCode
-- **Protocol**: Model Context Protocol (MCP)
+### Phase 2: Source Control (Months 3-18)
+**Focus**: DevFlow Code
+- Deliverables: Git Server, CI/CD, Package Registry.
+- Goal: Replace GitHub/GitLab for self-hosted teams.
 
----
+### Phase 3: Platform (Months 1-24)
+**Focus**: DevFlow Runtime
+- Deliverables: Supabase Integration, Deployment Engine, Observability.
+- Goal: Provide a complete "box" for running applications.
 
-## Architecture Overview
-
-```
-┌──────────────────────────────────────────────────────┐
-│                DevFlow Platform                      │
-├──────────────────────────────────────────────────────┤
-│                                                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────┐│
-│  │  Knowledge   │  │   Workflow   │  │   Agent   ││
-│  │     Hub      │◄─┤    Engine    │◄─┤  Runtime  ││
-│  │              │  │              │  │           ││
-│  │ - Crawling   │  │ - Phases     │  │ - Spawn   ││
-│  │ - Documents  │  │ - Tasks      │  │ - Isolate ││
-│  │ - Search/RAG │  │ - Kanban     │  │ - Monitor ││
-│  └──────────────┘  │ - Guardian   │  └───────────┘│
-│                    └──────────────┘                 │
-│                           │                         │
-│                  ┌────────▼────────┐               │
-│                  │  MCP Gateway    │               │
-│                  │                 │               │
-│                  │ - Knowledge     │               │
-│                  │ - Workflow      │               │
-│                  │ - Memory        │               │
-│                  │ - Coordination  │               │
-│                  └────────▲────────┘               │
-└───────────────────────────┼──────────────────────────┘
-                            │
-        ┌───────────────────┼───────────────────┐
-        │                   │                   │
-   ┌────▼────┐        ┌────▼────┐        ┌────▼────┐
-   │ Claude  │        │OpenCode │        │ Cursor  │
-   │  Code   │        │         │        │         │
-   └─────────┘        └─────────┘        └─────────┘
-```
+### Phase 4: Polish (Months 19-24)
+**Focus**: Analytics & Desktop
+- Deliverables: DevFlow Analytics (PostHog fork), Desktop App, CLI.
+- Goal: Enterprise readiness and developer experience.
 
 ---
 
 ## Business Value
 
-### For Individual Developers
-- **40% reduction** in manual coding time
-- **2x productivity gain** from AI assistance
-- **Comprehensive context** for better AI outputs
-- **Autonomous execution** of complex workflows
-
-### For Development Teams
-- **30% increase** in code quality (fewer bugs)
-- **70% knowledge reuse rate** across team
-- **Real-time visibility** into AI agent activities
-- **Scalable orchestration** for multiple projects
+### For Developers
+- **Zero-Config**: Code, database, and deployment work together instantly.
+- **AI Autonomy**: Agents handle grunt work (tests, docs, migrations) autonomously.
+- **Local-First**: Complete stack runs locally via Docker.
 
 ### For Enterprises
-- **Multi-tenancy** with team workspaces
-- **SSO and RBAC** integration
-- **Audit logging** and compliance
-- **99.9% uptime** SLA capability
-
----
-
-## Development Roadmap
-
-### Phase 1: MVP (Q1 2025)
-**Goal**: Working system with core features
-
-- ✅ Knowledge Hub (crawl, upload, search)
-- ✅ Workflow Engine (3 phases, Kanban, Guardian)
-- ✅ MCP Gateway (essential tools)
-- ✅ UI Dashboard (basic views)
-- ✅ Agent Runtime (isolation)
-
-**Success**: End-to-end workflow from PRD to code
-
-### Phase 2: Enhancement (Q2 2025)
-**Goal**: Advanced features and reliability
-
-- ⬜ Advanced RAG strategies
-- ⬜ Workflow templates
-- ⬜ Enhanced observability
-- ⬜ Integration ecosystem (GitHub, Slack)
-
-**Success**: 80% workflow success rate, 90% search relevance
-
-### Phase 3: Enterprise (Q3 2025)
-**Goal**: Production-ready for teams
-
-- ⬜ Multi-tenancy
-- ⬜ SSO & RBAC
-- ⬜ Horizontal scaling
-- ⬜ Security certifications
-
-**Success**: 100+ concurrent users, 99.9% uptime
-
----
-
-## Success Metrics
-
-### User Success
-| Metric | Target |
-|--------|--------|
-| Time to first workflow | < 30 minutes |
-| Knowledge retrieval accuracy | > 90% |
-| Agent task completion rate | > 85% |
-| User satisfaction (NPS) | > 50 |
-
-### Technical Performance
-| Metric | Target |
-|--------|--------|
-| Knowledge search latency (p95) | < 200ms |
-| Workflow coordination latency | < 500ms |
-| Agent spawn time | < 5 seconds |
-| System uptime | > 99.5% |
-
-### Business Impact
-| Metric | Target |
-|--------|--------|
-| Reduction in manual coding | > 40% |
-| Increase in code quality | > 30% |
-| Developer productivity gain | > 2x |
-| Knowledge reuse rate | > 70% |
-
----
-
-## Competitive Positioning
-
-### vs. GitHub Copilot Workspace
-- **DevFlow**: Full knowledge management + adaptive workflows
-- **Copilot**: IDE-integrated code completion
-
-### vs. Cursor / Windsurf
-- **DevFlow**: Comprehensive orchestration platform
-- **Cursor/Windsurf**: AI-powered code editors
-
-### vs. Traditional Agentic Frameworks
-- **DevFlow**: Semi-structured (adapts to discoveries)
-- **Others**: Fully structured (rigid, pre-planned)
-
-**Unique Value**: Only platform combining comprehensive knowledge management with adaptive workflow execution
-
----
-
-## Risk Assessment
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| LLM API costs | High | Caching, rate limiting, model selection |
-| Agent coordination failures | High | Guardian monitoring, rollback mechanisms |
-| Knowledge accuracy | Medium | Human validation, quality scoring |
-| Scaling challenges | High | Microservices architecture from start |
-| User adoption | Medium | Comprehensive docs, examples, onboarding |
-
----
-
-## Investment Requirements
-
-### MVP Phase (6 months)
-- **Team**: 4-6 engineers
-- **Infrastructure**: Development + testing environments
-- **APIs**: OpenAI, Anthropic, OpenRouter credits
-- **Tools**: Supabase, Qdrant hosting
-
-### Enhancement Phase (3 months)
-- **Team**: Same + 1-2 engineers
-- **Infrastructure**: Staging environments
-- **Integration**: GitHub, Slack partnerships
-
-### Enterprise Phase (3 months)
-- **Team**: Same + 2-3 engineers (security, ops)
-- **Infrastructure**: Production environment
-- **Compliance**: SOC2 audit, security testing
-
----
-
-## Go-to-Market Strategy
-
-### Stage 1: Developer Community (Months 1-6)
-- Open source core platform
-- Developer advocates and content
-- GitHub presence and examples
-- Discord community building
-
-### Stage 2: Early Adopters (Months 7-12)
-- Beta program with select teams
-- Case studies and testimonials
-- Integration partnerships
-- Documentation and tutorials
-
-### Stage 3: Commercial Launch (Months 13-18)
-- Cloud-hosted offering
-- Enterprise features and support
-- Sales and marketing team
-- Partner ecosystem
-
----
-
-## Why Now?
-
-### Market Timing
-- AI coding assistants mainstream (GitHub Copilot, Cursor, etc.)
-- Enterprises seeking to scale AI adoption
-- Model Context Protocol gaining adoption
-- Open source AI agent frameworks maturing
-
-### Technology Enablers
-- Powerful LLMs (GPT-4, Claude Sonnet)
-- Affordable vector databases (Qdrant)
-- Mature web frameworks (FastAPI, React)
-- MCP standardization
-
-### Pain Point Validation
-- Archon: 13.2k GitHub stars (knowledge management demand)
-- Hephaestus: 983 GitHub stars (adaptive workflows demand)
-- Growing complaints about rigid agentic frameworks
-- Enterprise need for AI governance and visibility
-
----
-
-## The Vision
-
-**DevFlow will become the operating system for AI-powered software development.**
-
-Where:
-- **Every project has a knowledge hub** (documentation, patterns, decisions)
-- **Workflows adapt intelligently** (based on discoveries, not predictions)
-- **Agents coordinate seamlessly** (via Kanban and Guardian)
-- **Teams have full visibility** (real-time observability)
-- **Quality is maintained** (Guardian monitoring, rollback safety)
-
-The result: **Autonomous software development that actually works at scale.**
+- **Data Sovereignty**: Full self-hosting capabilities (On-Prem / Private Cloud).
+- **Cost Reduction**: Eliminate multiple SaaS subscriptions (GitHub, Vercel, Supabase, Jira).
+- **Security**: Integrated secrets management (1Password) and scanning.
 
 ---
 
 ## Next Steps
 
-1. **Review complete PRD series** (7 documents in `docs/prds/`)
-2. **Validate technical approach** with architecture review
-3. **Prioritize Phase 1 features** based on user research
-4. **Assemble core team** (4-6 engineers)
-5. **Set up development environment** and infrastructure
-6. **Begin MVP implementation** (6-month sprint)
+1.  **Review PRDs**: Detailed specifications in `docs/prds/`.
+2.  **Prototype**: Begin Phase 1 implementation of DevFlow Hub.
+3.  **Team**: Assemble core engineering team (4-6 engineers).
 
 ---
 
-## Documentation
-
-### Detailed PRDs
-- [PRD-001: System Overview](docs/prds/PRD-001-OVERVIEW.md)
-- [PRD-002: Knowledge Hub Service](docs/prds/PRD-002-KNOWLEDGE-HUB.md)
-- [PRD-003: Adaptive Workflow Engine](docs/prds/PRD-003-WORKFLOW-ENGINE.md)
-- [PRD-004: MCP Gateway Service](docs/prds/PRD-004-MCP-GATEWAY.md)
-- [PRD-005: Unified UI Dashboard](docs/prds/PRD-005-UI-DASHBOARD.md)
-- [COMPARISON: Archon + Hephaestus Synthesis](docs/prds/COMPARISON.md)
-- [README: PRD Index](docs/prds/README.md)
-
-### Reference Projects
-- **Archon**: https://github.com/coleam00/Archon
-- **Hephaestus**: https://github.com/Ido-Levi/Hephaestus
-- **Model Context Protocol**: https://modelcontextprotocol.io/
-
----
-
-## Contact
-
-For questions, feedback, or collaboration opportunities:
-- **GitHub**: [Project Repository]
-- **Email**: [Contact Email]
-- **Discord**: [Community Server]
-
----
-
-**DevFlow: Where AI agents have comprehensive context and workflows adapt to reality.**
-
-*"The only platform that combines the knowledge your agents need with the flexibility they require."*
-
----
-
-**End of Executive Summary**
+**DevFlow**: The operating system for AI-powered software development.
