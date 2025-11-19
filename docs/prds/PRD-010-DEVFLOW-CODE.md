@@ -110,13 +110,26 @@ DevFlow Code is a complete source code and artifact management platform providin
 
 ---
 
-## Component 1: Git Server ($100k, 6 months)
+## Architecture Strategy
 
-### Overview
+### The "Engine vs. Experience" Approach
 
-Fork of Gitea with DevFlow-specific enhancements for AI integration and multi-product coordination.
+Building a Git hosting platform from scratch is a massive undertaking (Git protocol, SSH, diffs, merge logic). To achieve our goals within a reasonable timeline, DevFlow Code adopts a **Headless Gitea** strategy:
 
-### Core Features
+1.  **The Engine (Gitea Fork)**: We fork Gitea to serve as the robust backend engine. It handles:
+    *   Git repository storage and protocol (HTTP/SSH).
+    *   User authentication and permissions.
+    *   Webhooks and event dispatch.
+    *   Basic package registry functions.
+
+2.  **The Experience (DevFlow UI)**: We build a custom, AI-native frontend that communicates with the Gitea API. This allows us to:
+    *   Inject AI code review directly into the PR flow.
+    *   Integrate seamlessly with DevFlow Hub (Kanban/Agents).
+    *   Provide a modern, cohesive UX without being constrained by Gitea's server-side rendered templates.
+
+**Deployment Note**: DevFlow Code is designed as a **Server/Cloud Component**. It is not intended to run on a developer's local machine during standard `flow up` operations, preserving local resources for active development tasks (Runtime + Hub).
+
+---
 
 **Repository Management**:
 - Unlimited private/public repositories

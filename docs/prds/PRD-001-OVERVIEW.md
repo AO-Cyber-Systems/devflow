@@ -129,17 +129,68 @@ DevFlow addresses these challenges with three integrated products that work seam
 
 ## Core Principles
 
-1. **Structure Where It Matters**: Define work types, phase goals, and completion criteria, but let agents fill in the details
+### 1. Developer Experience is Paramount
+Tools must facilitate production readiness without impeding the inner development loop. Local environments should be lightweight, fast, and focused on the active task, not replicating the entire enterprise infrastructure.
 
-2. **Flexibility Where You Need It**: Allow agents to create new tasks based on discoveries without pre-planning every scenario
+### 2. Local Context, Global Intelligence
+- **Local**: Active code, database, and agent execution (Runtime + Hub).
+- **Global**: Source control, CI/CD, and package registry (Code).
+- **Hybrid**: Intelligence (LLMs) can be cloud (AOSentry) or local (Ollama), depending on security needs.
 
-3. **Knowledge-Driven Execution**: Every agent has access to the full project knowledge base to make informed decisions
+### 3. Adaptive Orchestration
+Workflows are not rigid pipelines. They are adaptive phases where agents explore, plan, and execute based on real-time discoveries in the codebase and knowledge hub.
 
-4. **Observable by Default**: Comprehensive visibility into what agents are doing, discovering, and deciding
-
-5. **Microservices Architecture**: Independent, scalable services with clear responsibilities and HTTP-based communication
+### 4. Data Sovereignty & Isolation
+- **SaaS**: Multi-tenant isolation using hybrid database-per-project architecture.
+- **Self-Hosted**: Complete data control with schema-based isolation for efficiency.
+- **Air-Gapped**: Full offline capability with local LLMs and self-hosted AOSentry.
 
 ---
+
+## Platform Architecture
+
+### 1. DevFlow Hub (The Brain)
+*Orchestration & Knowledge*
+- **Knowledge Hub**: Ingests docs, crawls web, indexes code.
+- **Workflow Engine**: Adaptive phase-based task execution.
+- **MCP Gateway**: Unified interface for AI agents.
+- **UI Dashboard**: React-based control plane.
+
+### 2. DevFlow Code (The Source)
+*Source Control & CI/CD (Server-Side)*
+- **Git Server**: Next-gen Gitea fork with AI review capabilities.
+- **CI/CD**: GitHub Actions-compatible runner system.
+- **Registry**: Universal package management.
+- **Note**: This component resides on the server/cloud, not the local dev machine.
+
+### 3. DevFlow Runtime (The Infrastructure)
+*Backend & Deployment*
+- **Supabase Core**: Database, Auth, Storage, Realtime, Functions.
+- **App Engine**: "Git push" deployment platform.
+- **Local Stack**: Docker-based subset for rapid iteration.
+
+---
+
+## Technology Stack
+
+### Backend
+- **Language**: Python 3.10+ (Hub), Go (Code), Elixir/Go/TS (Runtime)
+- **Framework**: FastAPI (Hub), Gin (Code), Supabase (Runtime)
+- **Database**: PostgreSQL + PGVector (Unified storage)
+- **Vector Store**: Qdrant (Semantic search)
+
+### AI/ML
+- **Gateway**: AOSentry (Cloud or On-Prem)
+- **Providers**: OpenAI, Anthropic, OpenRouter, Ollama (Local)
+- **Protocol**: Model Context Protocol (MCP)
+
+### Infrastructure
+- **Local**: Docker Compose (Hub + Runtime)
+- **Production**: Kubernetes (Helm Charts)
+- **Secrets**: 1Password Connect + Env fallback
+
+---
+
 
 ## Complete Platform Architecture
 

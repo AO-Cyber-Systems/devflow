@@ -99,11 +99,25 @@ DevFlow Runtime is a comprehensive backend platform that combines the power of S
 
 ---
 
-## Component 1: Backend Services (Supabase) ($450k, 15 months)
+## Architecture Strategy
 
-### Overview
+### Hybrid Multi-Project Isolation
 
-Integration of the open-source Supabase stack to provide core backend primitives. DevFlow manages the lifecycle, configuration, and scaling of these services.
+DevFlow Runtime adopts the "Hybrid" isolation model (referencing Supabase's multi-project analysis) to balance security with resource efficiency:
+
+1.  **Database-Per-Project**: Each project gets its own logical database within a shared PostgreSQL instance (or cluster). This ensures strong data isolation.
+2.  **Shared Service Pools**: Stateless services (GoTrue, Realtime, Storage API) are pooled and shared across projects to minimize resource overhead.
+3.  **Project-Aware Routing**: The API Gateway (Kong) routes requests to the correct database connection pool based on project ID.
+
+### Deployment Modes
+
+- **SaaS**: Fully managed, multi-tenant architecture with strict resource limits and billing integration.
+- **On-Premise (Enterprise)**: Same architecture as SaaS, deployable via Kubernetes (Helm) or Docker Compose for smaller setups.
+- **Local Development**: A simplified, single-tenant stack running in Docker (one DB, one set of services) to simulate the environment without the multi-tenant overhead.
+
+---
+
+## Component 1: Backend Services (Supabase)
 
 ### Core Services
 

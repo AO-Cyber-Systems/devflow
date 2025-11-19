@@ -49,9 +49,11 @@ DevFlow supports multiple deployment modes to accommodate diverse team sizes and
 
 ---
 
-## Mode 1: Local Development
+## Mode 1: Local Development (Lightweight)
 
 ### Architecture
+
+The local environment is optimized for **Developer Experience**. It runs only the components necessary for active development and testing (Runtime + Hub). Heavy components like the Git Server (DevFlow Code) are accessed remotely.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -61,28 +63,29 @@ DevFlow supports multiple deployment modes to accommodate diverse team sizes and
 │  Prerequisites: Docker Desktop (required)                   │
 │                                                             │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  Docker Stack (docker-compose up)                    │  │
-│  │  ┌────────────────┐  ┌─────────────────┐            │  │
-│  │  │  PostgreSQL    │  │  Qdrant         │            │  │
-│  │  │  :5432         │  │  :6333          │            │  │
-│  │  │  pgvector/     │  │  qdrant/        │            │  │
-│  │  │  pgvector:pg16 │  │  qdrant:latest  │            │  │
-│  │  └────────────────┘  └─────────────────┘            │  │
+│  │  DevFlow Runtime (Supabase Stack)                    │  │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐    │  │
+│  │  │ PostgreSQL │  │ GoTrue     │  │ Realtime   │    │  │
+│  │  │ :5432      │  │ :9999      │  │ :4000      │    │  │
+│  │  └────────────┘  └────────────┘  └────────────┘    │  │
+│  │  ┌────────────┐  ┌────────────┐                    │  │
+│  │  │ Storage    │  │ Studio     │                    │  │
+│  │  │ :5000      │  │ :3000      │                    │  │
+│  │  └────────────┘  └────────────┘                    │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                                                             │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  DevFlow Services (Node.js/Python)                   │  │
+│  │  DevFlow Hub (Orchestration)                         │  │
 │  │  ┌────────────┐  ┌────────────┐  ┌────────────┐    │  │
 │  │  │ Knowledge  │  │ Workflow   │  │ MCP Gateway│    │  │
-│  │  │ Hub        │  │ Engine     │  │ (stdio)    │    │  │
+│  │  │ Hub        │  │ Engine     │  │ (stdio/sse)│    │  │
 │  │  │ :8282      │  │ :8181      │  │ :8051      │    │  │
 │  │  └────────────┘  └────────────┘  └────────────┘    │  │
-│  │                                                      │  │
-│  │  ┌────────────┐  ┌────────────┐                     │  │
-│  │  │ Agent      │  │ Local UI   │                     │  │
-│  │  │ Runtime    │  │ :3737      │                     │  │
-│  │  │ (tmux/git) │  │ (React)    │                     │  │
-│  │  └────────────┘  └────────────┘                     │  │
+│  │  ┌────────────┐  ┌────────────┐                    │  │
+│  │  │ Agent      │  │ Local UI   │                    │  │
+│  │  │ Runtime    │  │ :3737      │                    │  │
+│  │  │ (tmux/git) │  │ (React)    │                    │  │
+│  │  └────────────┘  └────────────┘                    │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                                                             │
 │  Secrets: .env file (recommended)                           │
@@ -90,11 +93,18 @@ DevFlow supports multiple deployment modes to accommodate diverse team sizes and
 │                                                             │
 └─────────────┬───────────────────────────────────────────────┘
               │
-              │ HTTPS (to AOSentry for LLM calls)
+              │ HTTPS (Git Operations)
+              ▼
+┌─────────────────────────────────────────────────────────────┐
+│               DevFlow Code (Remote)                         │
+│          (SaaS or On-Prem Gitea Instance)                   │
+└─────────────────────────────────────────────────────────────┘
               │
-┌─────────────▼───────────────────────────────────────────────┐
-│            AOSentry.aocodex.ai                              │
-│            (LLM Gateway - OpenAI API Compatible)            │
+              │ HTTPS (LLM Calls)
+              ▼
+┌─────────────────────────────────────────────────────────────┐
+│               AOSentry (Remote or Local)                    │
+│          (Cloud Gateway or Local Container)                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 

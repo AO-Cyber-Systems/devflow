@@ -490,6 +490,33 @@ safety:
 
 ---
 
+## Deployment Models
+
+### 1. SaaS Gateway (aosentry.aocodex.ai)
+- **Usage**: Default for SaaS and standard On-Prem deployments.
+- **Benefits**: Zero maintenance, global caching, managed provider keys.
+- **Security**: SOC2 compliant, data processing agreements available.
+
+### 2. Self-Hosted Gateway (Container)
+- **Usage**: Air-gapped enterprise environments or strict data sovereignty needs.
+- **Deployment**: Docker container (`aocodex/aosentry:latest`).
+- **Configuration**:
+  ```yaml
+  services:
+    aosentry:
+      image: aocodex/aosentry:latest
+      environment:
+        - OPENAI_API_KEY=...
+        - ANTHROPIC_API_KEY=...
+        - REDIS_URL=redis://...
+        - DATABASE_URL=postgres://...
+      ports:
+        - "8000:8000"
+  ```
+- **Local LLM Routing**: Can route to local Ollama/vLLM instances within the same network.
+
+---
+
 ## On-Premise LLM Support
 
 DevFlow can route LLM calls to on-premise models via AOSentry:
