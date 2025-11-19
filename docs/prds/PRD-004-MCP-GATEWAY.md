@@ -101,44 +101,15 @@ async def search_knowledge(
     """
     Search the project knowledge base.
     
+    Note: 'reranked' mode uses AOSentry to access LLMs for result optimization.
+    
     Args:
         query: What to search for
         mode: Search strategy
             - semantic: Vector similarity only
             - hybrid: Vector + keyword search
-            - reranked: Hybrid + LLM reranking (slower, more accurate)
+            - reranked: Hybrid + LLM reranking (via AOSentry)
         top_k: Number of results to return
-        filters: Optional filters
-            - tags: List[str] - Filter by tags
-            - sources: List[str] - Filter by source IDs
-            - has_code: bool - Only results with code examples
-        include_code_examples: Extract and include code blocks
-    
-    Returns:
-        {
-            "results": [
-                {
-                    "content": str,
-                    "source": str,
-                    "url": str,
-                    "score": float,
-                    "metadata": {...},
-                    "code_examples": [...] if requested
-                }
-            ],
-            "total_results": int,
-            "search_time_ms": int
-        }
-    
-    Example:
-        results = search_knowledge(
-            query="How to implement JWT authentication?",
-            mode="reranked",
-            filters={"tags": ["authentication", "security"]},
-            include_code_examples=True
-        )
-    """
-    pass
 ```
 
 #### `get_code_examples`
@@ -674,45 +645,17 @@ For complete integration tool specifications, OAuth setup, and hierarchy enforce
 
 ---
 
-## Protocol Implementation
+## Transport Modes
 
-### Transport Modes
+DevFlow supports two primary transport modes for MCP to handle both local development and hosted/remote scenarios.
 
-#### 1. SSE (Server-Sent Events)
-For web-based clients and remote connections.
+### 1. stdio (Standard Input/Output) - Local Mode
+**Primary use case**: Local development with CLI tools like **Claude Code** or **OpenCode**.
 
-```python
-from fastapi import FastAPI
-from sse_starlette.sse import EventSourceResponse
-
-app = FastAPI()
-
-@app.get("/mcp/sse")
-async def mcp_sse_endpoint():
-    """SSE endpoint for MCP protocol."""
-    
-    async def event_generator():
-        while True:
-            # Receive tool call request
-            request = await receive_mcp_request()
-            
-            # Execute tool
-            result = await execute_tool(
-                tool_name=request.tool,
-                args=request.args
-            )
-            
-            # Send response
-            yield {
-                "event": "tool_response",
-                "data": json.dumps(result)
-            }
-    
-    return EventSourceResponse(event_generator())
-```
-
-#### 2. stdio (Standard Input/Output)
-For local CLI tools like Claude Code.
+- **Mechanism**: JSON-RPC messages over standard input/output streams.
+- **Latency**: Zero network latency.
+- **Offline Support**: Works fully offline when Knowledge Hub and Workflow Engine are running locally (Docker).
+- **Security**: Inherits user permissions from the shell session.
 
 ```python
 #!/usr/bin/env python3
@@ -721,28 +664,23 @@ import json
 import asyncio
 
 async def stdio_mcp_server():
-    """stdio MCP server for Claude Code."""
-    
-    while True:
-        # Read request from stdin
-        line = sys.stdin.readline()
-        if not line:
-            break
-        
-        request = json.loads(line)
-        
-        # Execute tool
-        result = await execute_tool(
-            tool_name=request["tool"],
-            args=request["args"]
-        )
-        
-        # Write response to stdout
-        sys.stdout.write(json.dumps(result) + "\n")
-        sys.stdout.flush()
+    """stdio MCP server for local CLI tools (Claude Code)."""
+    # ... implementation ...
+```
 
-if __name__ == "__main__":
-    asyncio.run(stdio_mcp_server())
+### 2. SSE (Server-Sent Events) - Hosted/Remote Mode
+**Primary use case**: Web-based UI, remote agents, or multi-user SaaS environment.
+
+- **Mechanism**: HTTP POST for requests, Server-Sent Events for responses/events.
+- **Scalability**: Load balanced via Nginx/Kubernetes.
+- **Security**: Requires API Key or OAuth token authentication.
+- **Updates**: Push real-time updates (e.g., task changes) to connected clients.
+
+```python
+@app.get("/mcp/sse")
+async def mcp_sse_endpoint(api_key: str = Depends(verify_api_key)):
+    """SSE endpoint for remote agents."""
+    # ... implementation ...
 ```
 
 ### Tool Registry
