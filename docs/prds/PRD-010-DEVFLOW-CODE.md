@@ -127,7 +127,7 @@ Building a Git hosting platform from scratch is a massive undertaking (Git proto
     *   Integrate seamlessly with DevFlow Hub (Kanban/Agents).
     *   Provide a modern, cohesive UX without being constrained by Gitea's server-side rendered templates.
 
-**Deployment Note**: DevFlow Code is designed as a **Server/Cloud Component**. It is not intended to run on a developer's local machine during standard `flow up` operations, preserving local resources for active development tasks (Runtime + Hub).
+**Deployment Note**: DevFlow Code is designed as a **Server/Cloud Component**. It is not intended to run on a developer's local machine during standard `devflow up` operations, preserving local resources for active development tasks (Runtime + Hub).
 
 ---
 

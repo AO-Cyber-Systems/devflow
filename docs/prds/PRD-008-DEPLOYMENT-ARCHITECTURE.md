@@ -199,10 +199,10 @@ cp .env.example .env
 nano .env  # or vim, code, etc.
 
 # Start Docker containers
-docker-compose up -d
+devflow up -d
 
 # Verify containers are running
-docker-compose ps
+devflow status
 # Expected output:
 # NAME                 STATUS    PORTS
 # devflow-postgres     Up        0.0.0.0:5432->5432/tcp

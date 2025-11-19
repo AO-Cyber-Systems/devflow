@@ -34,7 +34,7 @@ The PRDs are coherent, cross-referenced effectively, and provide sufficient deta
 | `PRD-012` | DevFlow Analytics | Draft | PostHog Fork + Billing. |
 | `PRD-013` | Platform Services | Draft | Vespa + Neo4j + Stripe. |
 | **Tools** | | | |
-| `PRD-014` | DevFlow CLI | Draft | Unified `flow` binary. |
+| `PRD-014` | DevFlow CLI | Draft | Unified `devflow` binary. |
 | `PRD-015` | DevFlow Desktop | Draft | Electron wrapper (Optional). |
 
 ## 3. Findings & Analysis

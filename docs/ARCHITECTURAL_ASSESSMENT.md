@@ -9,7 +9,7 @@
 ## 1. Strategic Pivots
 
 ### 1.1. Local Environment Optimization
-**Decision:** The local development environment (`flow up`) will **not** include the heavy "DevFlow Code" (Git Server) stack.
+**Decision:** The local development environment (`devflow up`) will **not** include the heavy "DevFlow Code" (Git Server) stack.
 **Rationale:** Developer experience is paramount. Local resources should be reserved for the "Inner Loop" (Coding, Running App, Testing Agents). Source control and CI/CD are "Outer Loop" concerns best handled by a remote server (SaaS or On-Prem).
 
 ### 1.2. Gitea Strategy: "Headless Engine"

@@ -49,8 +49,8 @@ DevFlow Desktop is an optional native application providing a rich graphical int
 ## Architecture
 
 - **Framework**: Electron + React
-- **Bundling**: Includes `flow` CLI binary
-- **Communication**: Uses CLI for actual operations (`flow up`, `flow down`)
+- **Bundling**: Includes `devflow` CLI binary
+- **Communication**: Uses CLI for actual operations (`devflow up`, `devflow down`)
 - **Update**: Electron Builder
 
 ---
