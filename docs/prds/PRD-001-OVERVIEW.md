@@ -1,7 +1,7 @@
 # PRD-001: DevFlow System Overview
 
-**Version:** 1.0  
-**Status:** Draft  
+**Version:** 2.0  
+**Status:** Active Development  
 **Last Updated:** November 18, 2025  
 **Author:** DevFlow Team
 
@@ -9,49 +9,121 @@
 
 ## Executive Summary
 
-DevFlow is a next-generation development workflow orchestration platform that combines the knowledge management and MCP server capabilities of Archon with the self-adapting, semi-structured workflow execution of Hephaestus. DevFlow aims to be the comprehensive command center for AI-powered software development, providing both the context (knowledge base) and the execution engine (adaptive workflows) needed for autonomous software development.
+DevFlow is a **complete AI-native development platform** that combines AI orchestration, source control, CI/CD, and backend services into one integrated system. DevFlow synthesizes the knowledge management capabilities of Archon with the adaptive workflow execution of Hephaestus, while adding comprehensive Git hosting, package management, and backend infrastructure.
+
+**Platform Investment**: $2.22M over 24 months
+
+**Three Integrated Products**:
+1. **DevFlow Hub** - AI Orchestration & Knowledge Management ($220k, 12 months)
+2. **DevFlow Code** - Git Hosting, CI/CD, Universal Package Registry ($540k, 18 months)
+3. **DevFlow Runtime** - Complete Backend Platform ($1.36M, 24 months)
+
+DevFlow is the **only self-hosted platform** combining AI development tools, source control, and backend services with true data sovereignty.
 
 ---
 
 ## Vision
 
-**DevFlow creates a unified environment where AI agents have access to comprehensive project knowledge and can dynamically adapt their workflows based on real-time discoveries, all while maintaining coordination and preventing chaos through intelligent orchestration.**
+**DevFlow creates the complete development platform where:**
+
+- AI agents have comprehensive project knowledge and adapt workflows dynamically
+- Source code, artifacts, and packages are managed in a universal registry
+- Backend services (database, auth, storage, functions) are integrated out-of-box
+- Feature flags, analytics, and observability drive data-informed decisions
+- Everything works locally or in the cloud with seamless migration between modes
 
 ---
 
 ## Problem Statement
 
-Current AI-assisted development tools suffer from three key limitations:
+Current development platforms force you to cobble together multiple tools:
 
-1. **Context Fragmentation**: AI coding assistants lack access to comprehensive, searchable project knowledge (documentation, decisions, patterns)
+1. **Fragmented Development Tools**:
+   - GitHub for code → CircleCI for CI/CD → Heroku for hosting → PostHog for analytics
+   - Each tool requires separate billing, authentication, and integration
+   - No unified experience or data sharing across tools
 
-2. **Rigid Workflows**: Traditional agentic frameworks require predefined task descriptions for every possible scenario, breaking when reality diverges from predictions
+2. **Limited AI Integration**:
+   - AI coding assistants lack access to comprehensive project knowledge
+   - No orchestration for multi-agent workflows
+   - Rigid automation that breaks when reality diverges from predictions
 
-3. **Coordination Chaos**: When multiple AI agents work simultaneously, they often duplicate work, create conflicting changes, or lack clear success criteria
+3. **Vendor Lock-in**:
+   - Cloud-only solutions prevent self-hosting for compliance
+   - No data sovereignty for regulated industries
+   - Migration between providers is painful and risky
+
+4. **Incomplete Platforms**:
+   - GitHub: Great for code, but limited backend services
+   - Supabase: Great for backend, but no Git hosting or CI/CD
+   - Neither has AI orchestration or knowledge management
 
 ---
 
-## Solution
+## Solution: Three-Product Platform
 
-DevFlow addresses these challenges through three integrated systems:
+DevFlow addresses these challenges with three integrated products that work seamlessly together:
 
-### 1. **Knowledge Hub** (Inspired by Archon)
-- Comprehensive knowledge base with web crawling, document processing, and vector search
-- MCP server providing standardized access to project knowledge for all AI agents
-- Smart RAG strategies for optimal information retrieval
-- Real-time knowledge updates as projects evolve
+### 1. **DevFlow Hub** ($220k, 12 months) - AI Orchestration
+**Inspired by Archon + Hephaestus**
 
-### 2. **Adaptive Workflow Engine** (Inspired by Hephaestus)
-- Semi-structured phase system allowing agents to create tasks dynamically
-- Self-building workflow trees based on agent discoveries
-- Kanban-based coordination preventing duplicate work
-- Guardian system monitoring agent alignment with phase goals
+- **Knowledge Management**: Web crawling, document processing, vector search
+- **Adaptive Workflows**: Semi-structured phases, dynamic task creation
+- **MCP Gateway**: Standardized AI agent tool access
+- **Guardian Monitoring**: Keep agents aligned with goals
+- **SDLC Integrations**: Jira, Confluence, GitHub bidirectional sync
 
-### 3. **Unified Orchestration Layer** (DevFlow Innovation)
-- Single control plane coordinating knowledge access and workflow execution
-- Integrated UI showing both knowledge base and active workflows
-- Cross-cutting observability across all agents and tasks
-- Unified configuration and deployment model
+**Key Innovation**: Workflows that adapt based on discoveries, not rigid pre-planned scripts
+
+### 2. **DevFlow Code** ($540k, 18 months) - Source Control & CI/CD
+**GitHub Alternative with AI Enhancements**
+
+- **Git Server**: Gitea-based fork with AI-powered code review
+- **CI/CD**: GitHub Actions-compatible pipeline system
+- **Universal Package Registry**: npm, pip, Docker, apt, cargo, maven, etc.
+- **Project Management**: Issues, pull requests, project boards
+- **Security Scanning**: Vulnerability detection, dependency audits
+
+**Key Innovation**: Universal package registry supporting ALL package managers in one place
+
+### 3. **DevFlow Runtime** ($1.36M, 24 months) - Complete Backend
+**Supabase + Deployment + Analytics**
+
+- **Supabase Foundation**: PostgreSQL, Auth, Storage, Realtime, Edge Functions
+- **App Deployment**: git push deploy with automatic buildpacks
+- **Observability**: Prometheus, Loki, Tempo, Sentry integration
+- **DevFlow Analytics**: PostHog fork with feature flags + billing integration
+- **Search & Graph**: Vespa full-text/vector search, Neo4j knowledge graph
+- **Billing**: Stripe integration for subscriptions
+
+**Key Innovation**: Feature flags that control billing tiers, enabling sophisticated pricing
+
+---
+
+## Why Three Products?
+
+### Better Together, Useful Apart
+
+**Use DevFlow Hub Alone**:
+- AI orchestration with existing Git (GitHub, GitLab)
+- Knowledge management for any project
+- Adaptive workflows with external CI/CD
+
+**Use DevFlow Code Alone**:
+- Self-hosted Git alternative to GitHub
+- Universal package registry for all artifacts
+- CI/CD without AI orchestration
+
+**Use DevFlow Runtime Alone**:
+- Backend platform like Supabase
+- App deployment like Heroku
+- Analytics without Git hosting
+
+**Use All Three Together**:
+- Complete integrated platform
+- Automatic configuration (DATABASE_URL, etc.)
+- Unified billing and authentication
+- Data sovereignty with self-hosting option
 
 ---
 
@@ -69,57 +141,76 @@ DevFlow addresses these challenges through three integrated systems:
 
 ---
 
-## System Architecture
+## Complete Platform Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                        DevFlow Platform                          │
-└──────────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-        ▼                     ▼                     ▼
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  Knowledge   │    │   Workflow   │    │    Agent     │
-│  Hub Service │◄───┤    Engine    │◄───┤   Runtime    │
-│              │    │   Service    │    │   Service    │
-│  - Web Crawl │    │              │    │              │
-│  - Doc Proc  │    │  - Phases    │    │  - Spawning  │
-│  - Vector DB │    │  - Tasks     │    │  - Isolation │
-│  - RAG       │    │  - Kanban    │    │  - Guardian  │
-└──────────────┘    │  - Guardian  │    └──────────────┘
-                    └──────────────┘
-        │                     │                     │
-        └─────────────────────┼─────────────────────┘
-                              │
-                    ┌──────────────┐
-                    │  MCP Server  │
-                    │   Gateway    │
-                    │              │
-                    │ - Knowledge  │
-                    │ - Tasks      │
-                    │ - Memory     │
-                    └──────────────┘
-                              │
-                    ┌──────────────┐
-                    │  AI Agents   │
-                    │              │
-                    │ - Claude     │
-                    │ - OpenCode   │
-                    │ - Cursor     │
-                    │ - Windsurf   │
-                    └──────────────┘
-
-         ┌────────────────────────────┐
-         │   Unified UI Dashboard     │
-         │                            │
-         │  - Knowledge Browser       │
-         │  - Workflow Visualizer     │
-         │  - Task Board (Kanban)     │
-         │  - Agent Monitoring        │
-         │  - Configuration           │
-         └────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          DevFlow Platform                               │
+│                         ($2.22M over 24 months)                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        │                           │                           │
+        ▼                           ▼                           ▼
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────────┐
+│  DevFlow Hub    │      │  DevFlow Code   │      │  DevFlow Runtime    │
+│  ($220k/12mo)   │      │  ($540k/18mo)   │      │  ($1.36M/24mo)      │
+├─────────────────┤      ├─────────────────┤      ├─────────────────────┤
+│ Knowledge Hub   │      │ Git Server      │      │ Supabase (DB/Auth)  │
+│ Workflow Engine │      │ Pull Requests   │      │ App Deployment      │
+│ MCP Gateway     │      │ CI/CD Pipelines │      │ Observability       │
+│ Agent Runtime   │      │ Package Registry│      │ Analytics (PostHog) │
+│ Guardian System │      │ Security Scan   │      │ Search (Vespa)      │
+│ UI Dashboard    │      │ Project Mgmt    │      │ Graph (Neo4j)       │
+│ Integrations    │      │ AI Code Review  │      │ Billing (Stripe)    │
+└─────────────────┘      └─────────────────┘      └─────────────────────┘
+        │                           │                           │
+        └───────────────────────────┼───────────────────────────┘
+                                    │
+                         ┌──────────────────┐
+                         │  Cross-Cutting   │
+                         │    Services      │
+                         ├──────────────────┤
+                         │ Secrets (1Pass)  │
+                         │ AOSentry (LLM)   │
+                         │ Docker/K8s       │
+                         │ PostgreSQL       │
+                         └──────────────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+            ┌──────────┐    ┌──────────┐    ┌──────────┐
+            │ DevFlow  │    │ DevFlow  │    │   Web    │
+            │   CLI    │    │ Desktop  │    │    UI    │
+            │          │    │ (Electron)│   │          │
+            └──────────┘    └──────────┘    └──────────┘
 ```
+
+### Product Integration Points
+
+**Hub ↔ Code**:
+- Workflows trigger CI/CD pipelines
+- AI agents create pull requests
+- Code review results update knowledge base
+- Package dependencies inform workflow decisions
+
+**Code ↔ Runtime**:
+- git push triggers app deployment
+- CI/CD publishes packages to registry
+- Runtime services available as package dependencies
+- Observability integrated with build logs
+
+**Hub ↔ Runtime**:
+- Knowledge base searches application data
+- Workflows deploy to Runtime infrastructure
+- Feature flags (Analytics) control workflow rollout
+- Agent usage tracked in Analytics
+
+**All Three**:
+- Single authentication (Supabase Auth)
+- Unified billing (Stripe via Runtime)
+- Shared PostgreSQL database
+- Consistent UI/UX across products
 
 ---
 
@@ -260,13 +351,106 @@ DevFlow addresses these challenges through three integrated systems:
 
 ---
 
+## Platform Investment Summary
+
+### Development Costs by Product
+
+**DevFlow Hub** ($220k, 12 months):
+- Knowledge Hub: $80k (4 months)
+- Workflow Engine: $60k (3 months)
+- MCP Gateway: $40k (2 months)
+- UI Dashboard: $40k (3 months)
+
+**DevFlow Code** ($540k, 18 months):
+- Git Server (Gitea fork): $100k (6 months)
+- CI/CD System: $80k (4 months)
+- AI Code Review: $120k (4 months)
+- Universal Package Registry: $140k (6 months)
+- Project Management: $60k (3 months)
+- Integration: $40k (2 months)
+
+**DevFlow Runtime** ($1.36M, 24 months):
+- Supabase Base: $450k (15 months)
+- App Deployment: $100k (8 months)
+- Observability Stack: $120k (4 months)
+- DevFlow Analytics (PostHog fork): $210k (6 months)
+- Vespa Search: $100k (4 months)
+- Neo4j Graph: $80k (3 months)
+- Stripe Integration: $40k (2 months)
+- SDK Integration: $50k (2 months)
+
+**Optional**:
+- DevFlow CLI: Included in each product
+- DevFlow Desktop: $100k (6 months)
+
+**Total**: $2.22M over 24 months (excluding Desktop)
+
+### Timeline Milestones
+
+```
+Month 1:    DevFlow Hub + Runtime start
+Month 3:    DevFlow Code starts
+Month 12:   DevFlow Hub MVP complete
+Month 15:   Supabase foundation complete
+Month 18:   DevFlow Code complete
+Month 19:   DevFlow Analytics (PostHog fork) starts
+Month 24:   Complete platform launch
+```
+
+---
+
+## Competitive Positioning
+
+### DevFlow vs Existing Solutions
+
+| Feature | GitHub+Actions | Supabase | GitLab | DevFlow |
+|---------|----------------|----------|--------|---------|
+| **Git Hosting** | ✅ | ❌ | ✅ | ✅ |
+| **CI/CD** | ✅ | ❌ | ✅ | ✅ |
+| **Package Registry** | Limited | ❌ | Limited | Universal |
+| **Backend (DB/Auth)** | ❌ | ✅ | ❌ | ✅ |
+| **App Deployment** | ❌ | ✅ Functions | ❌ | ✅ Containers |
+| **AI Orchestration** | ❌ | ❌ | ❌ | ✅ |
+| **Knowledge Management** | ❌ | ❌ | ❌ | ✅ |
+| **Analytics** | Limited | Limited | Limited | ✅ PostHog |
+| **Self-Hosted** | ❌ | ✅ | ✅ | ✅ |
+| **Feature Flags** | ❌ | ❌ | ❌ | ✅ w/ Billing |
+| **Unified Platform** | ❌ | Partial | Partial | ✅ |
+
+### Unique Value Propositions
+
+1. **Only Platform with AI Orchestration + Git + Backend** - Complete development lifecycle in one system
+2. **Universal Package Registry** - npm, pip, Docker, apt, all in one place
+3. **Feature Flags + Billing Integration** - Sophisticated pricing and gradual rollouts
+4. **True Data Sovereignty** - Complete self-hosting with cloud option
+5. **Integrated Knowledge Management** - AI agents with full project context
+
+### Target Markets
+
+**Startups** ($99-499/month):
+- Complete platform from day 1
+- Scales as they grow
+- No vendor juggling
+
+**Enterprises** (Self-hosted):
+- Compliance and data sovereignty
+- On-premise or air-gapped
+- Custom SLAs
+
+**Dev Tools Companies**:
+- Platform to build on top of
+- White-label options
+- API-first architecture
+
+---
+
 ## Non-Goals (Out of Scope)
 
-1. **Code Editor Replacement**: DevFlow is not a replacement for IDEs/editors like VS Code
-2. **Direct Code Execution**: Agents work through CLI tools (Claude Code, etc.), not direct execution
-3. **Code Hosting**: Not a replacement for GitHub/GitLab
-4. **Project Management**: Not a replacement for Jira/Linear (though can integrate)
-5. **General Purpose Chatbot**: Focused on development workflows, not general Q&A
+1. **Code Editor Replacement**: DevFlow is not replacing VS Code, Cursor, or Windsurf
+2. **Direct Code Execution**: Agents work through CLI tools, not direct Python exec
+3. **General Purpose Cloud**: Not competing with AWS/GCP/Azure infrastructure
+4. **General Purpose Chatbot**: Focused on development workflows, not ChatGPT replacement
+5. **Mobile Development**: No native mobile app platform (web apps via Runtime only)
 
 ---
 
@@ -285,80 +469,207 @@ DevFlow addresses these challenges through three integrated systems:
 
 ## Development Roadmap
 
-### Q1 2026: MVP Release
-- Core knowledge management
-- Basic workflow orchestration
-- Essential MCP tools
-- Minimal viable UI
-- Documentation and examples
+### Phase 1: DevFlow Hub Foundation (Months 1-12)
+**Investment**: $220k
 
-### Q2 2026: Feature Enhancement
-- Advanced RAG strategies
-- Workflow templates
-- Enhanced observability
-- **SDLC Tool Integrations** (Atlassian, GitHub - see PRD-006)
+**Deliverables**:
+- Knowledge Hub with web crawling, document processing, RAG
+- Workflow Engine with semi-structured phases and Kanban coordination
+- MCP Gateway for AI agent tool access
+- UI Dashboard for monitoring and control
+- Integrations with Jira/Confluence/GitHub
+- Secrets management (1Password + .env)
+- AOSentry LLM gateway integration
 
-### Q3 2026: Enterprise Readiness
-- Multi-tenancy
-- SSO and RBAC
-- Scalability improvements
-- Compliance certifications
+**Success Metrics**:
+- Can ingest and search documentation (>90% accuracy)
+- Can run end-to-end workflow (PRD → Code)
+- Agents coordinate via Kanban (no duplicate work)
+- Guardian prevents workflow drift (>90% intervention success)
 
-### Q4 2026: Ecosystem Growth
-- Plugin system
+### Phase 2: DevFlow Code (Months 3-18)
+**Investment**: $540k (parallel with Hub)
+
+**Deliverables**:
+- Self-hosted Git server (Gitea fork with AI enhancements)
+- Pull/merge request system with AI code review
+- GitHub Actions-compatible CI/CD
+- Universal Package Registry (npm, pip, Docker, apt, cargo, etc.)
+- Project management (issues, boards)
+- Security scanning and vulnerability detection
+
+**Success Metrics**:
+- Can host Git repositories and handle PRs
+- CI/CD pipelines execute reliably (>95% success rate)
+- Package registry supports 10+ package managers
+- AI code review provides actionable feedback (>80% helpful)
+
+### Phase 3: DevFlow Runtime Core (Months 1-18)
+**Investment**: $670k (parallel with Hub + Code)
+
+**Deliverables**:
+- Supabase foundation (PostgreSQL, Auth, Storage, Realtime, Functions)
+- Application deployment (git push deploy with buildpacks)
+- Background workers and scheduled jobs
+- Observability stack (Prometheus, Loki, Tempo, Sentry)
+- Vespa Search (full-text + vector + hybrid)
+- Neo4j Knowledge Graph (code dependencies)
+- Stripe Integration (billing)
+- Unified SDK
+
+**Success Metrics**:
+- Can deploy apps with single command
+- Database, auth, storage work out-of-box
+- Monitoring and logging provide visibility
+- Search and graph enhance platform value
+
+### Phase 4: DevFlow Analytics (Months 19-24)
+**Investment**: $210k (after Hub/Code stable)
+
+**Deliverables**:
+- PostHog fork with PostgreSQL + TimescaleDB backend
+- Feature flags integrated with billing/subscriptions
+- A/B testing framework for product decisions
+- Session replay for debugging
+- Funnel analysis and conversion tracking
+- AI-powered churn prediction
+
+**Success Metrics**:
+- Feature flags control billing tiers (>5 tiers)
+- A/B tests inform product decisions (>10 experiments)
+- Session replay helps debug issues (>50% faster resolution)
+- Churn prediction enables retention (>20% improvement)
+
+### Phase 5: Polish & Launch (Month 24+)
+**Investment**: Ongoing
+
+**Deliverables**:
+- DevFlow CLI unified tool
+- DevFlow Desktop (Electron app, optional)
+- Documentation and tutorials
 - Community templates
-- Advanced analytics
-- Mobile companion app
+- Plugin system
+- Mobile companion (future)
 
 ---
 
 ## Open Questions
 
-1. **Deployment Strategy**: Should we prioritize self-hosted or cloud-hosted deployment initially?
+### Product Strategy
 
-2. **Pricing Model**: Open source with commercial features? Subscription? Usage-based?
+1. **Launch Strategy**: Launch all three products simultaneously (Month 24) or phase them?
+   - Option A: Hub (Month 12) → Code (Month 18) → Runtime (Month 24)
+   - Option B: Integrated beta (Month 18) → Full launch (Month 24)
 
-3. **Agent Isolation**: How deep should sandbox isolation go? Containers? VMs?
+2. **Open Source Model**: Which components should be open source?
+   - Option A: All open source, commercial hosting/support
+   - Option B: Hub open source, Code/Runtime commercial
+   - Option C: Core open source, enterprise features commercial
 
-4. **Knowledge Versioning**: How do we handle knowledge base evolution and versioning?
+3. **Pricing Tiers**: How many tiers and what features in each?
+   - Suggested: Free (solo), Pro ($99/mo), Team ($499/mo), Enterprise (custom)
 
-5. **Workflow Persistence**: Should workflows survive system restarts? How to handle agent state?
+### Technical Decisions
+
+4. **Gitea Fork vs Custom**: Should we fork Gitea or build Git server from scratch?
+   - Recommendation: Fork Gitea (faster, proven, community)
+
+5. **Analytics Backend**: PostgreSQL + TimescaleDB vs ClickHouse for PostHog?
+   - Recommendation: PostgreSQL + TimescaleDB (unified data model)
+
+6. **Kubernetes Requirement**: Support Docker Compose only or require Kubernetes?
+   - Recommendation: Docker Compose (dev/small), Kubernetes (prod/scale)
+
+### Go-to-Market
+
+7. **Target Launch Date**: When should SaaS go live?
+   - Suggestion: Month 12 (Hub only), Month 18 (+ Code), Month 24 (complete)
+
+8. **Revenue Projections**: Expected revenue at 12/24/36 months?
+   - Needs: Financial model with customer acquisition assumptions
+
+9. **Fundraising Strategy**: Bootstrap, seed round, or Series A?
+   - Consideration: $2.22M development cost + operations + marketing
+
+---
+
+## Related PRDs
+
+### Core Platform
+- [PRD-007: Secrets & Environment Management](./PRD-007-SECRETS-MANAGEMENT.md)
+- [PRD-008: Deployment Architecture](./PRD-008-DEPLOYMENT-ARCHITECTURE.md)
+- [PRD-009: AOSentry Integration](./PRD-009-AOSENTRY-INTEGRATION.md)
+
+### DevFlow Hub (AI Orchestration)
+- [PRD-002: Knowledge Hub Service](./PRD-002-KNOWLEDGE-HUB.md)
+- [PRD-003: Adaptive Workflow Engine](./PRD-003-WORKFLOW-ENGINE.md)
+- [PRD-004: MCP Gateway Service](./PRD-004-MCP-GATEWAY.md)
+- [PRD-005: Unified UI Dashboard](./PRD-005-UI-DASHBOARD.md)
+- [PRD-006: SDLC Tool Integrations](./PRD-006-INTEGRATIONS.md)
+
+### DevFlow Code (Git + CI/CD)
+- PRD-010: DevFlow Code *(to be created)*
+
+### DevFlow Runtime (Backend Platform)
+- PRD-011: DevFlow Runtime *(to be created)*
+- PRD-012: DevFlow Analytics *(to be created)*
+- PRD-013: Additional Platform Services *(to be created)*
+
+### Developer Tools
+- PRD-014: DevFlow CLI *(to be created)*
+- PRD-015: DevFlow Desktop *(to be created)*
+
+### Planning Documents
+- [PRD Index (README)](./README.md)
+- [PRD Update Plan](../PRD_UPDATE_PLAN.md)
+- [Implementation Summary](../IMPLEMENTATION_SUMMARY.md)
+- [Comparison with Archon/Hephaestus](./COMPARISON.md)
 
 ---
 
 ## References
 
+### Inspirational Projects
 - **Archon Project**: https://github.com/coleam00/Archon
 - **Hephaestus Project**: https://github.com/Ido-Levi/Hephaestus
 - **Model Context Protocol**: https://modelcontextprotocol.io/
-- **PydanticAI**: https://ai.pydantic.dev/
+
+### Technology Foundations
+- **Supabase**: https://supabase.com/
+- **PostHog**: https://posthog.com/
+- **Gitea**: https://gitea.io/
+- **Vespa Search**: https://vespa.ai/
+- **Neo4j**: https://neo4j.com/
+
+### Standards & Protocols
+- **OpenTelemetry**: https://opentelemetry.io/
+- **GitHub Actions**: https://docs.github.com/en/actions
+- **OCI Spec**: https://opencontainers.org/
 
 ---
 
-## Appendices
+## Glossary
 
-### A. Comparison with Existing Solutions
+**Platform Terms**:
+- **DevFlow Hub**: AI orchestration and knowledge management product
+- **DevFlow Code**: Git hosting, CI/CD, and package registry product
+- **DevFlow Runtime**: Complete backend platform (Supabase + deployment + analytics)
+- **Universal Package Registry**: Single registry supporting all package managers
 
-| Feature | Archon | Hephaestus | DevFlow |
-|---------|--------|------------|---------|
-| Knowledge Base | ✅ | ❌ | ✅ |
-| Adaptive Workflows | ❌ | ✅ | ✅ |
-| MCP Server | ✅ | ✅ | ✅ |
-| Kanban Coordination | ❌ | ✅ | ✅ |
-| Guardian Monitoring | ❌ | ✅ | ✅ |
-| Unified UI | ✅ | ✅ | ✅ |
-| Microservices | ✅ | ❌ | ✅ |
-| Enterprise Features | Planned | ❌ | Planned |
-
-### B. Glossary
-
+**Technical Terms**:
 - **MCP**: Model Context Protocol - standardized protocol for AI tool access
 - **RAG**: Retrieval-Augmented Generation - AI technique combining search with generation
 - **Guardian**: Monitoring system that steers agents back on track
 - **Phase**: Logical work type grouping (analysis, implementation, validation)
 - **Kanban**: Visual task board system for coordination
 - **Vector Store**: Database optimized for semantic search
-- **PGVector**: PostgreSQL extension for vector similarity search
+- **Buildpack**: Automatic detection and build system (e.g., Heroku buildpacks)
+- **Feature Flag**: Configuration toggle for gradual feature rollout
+
+---
+
+**Document Version**: 2.0 (Complete Platform Expansion)  
+**Status**: Active Development - Ready for Implementation Planning
 
 ---
 
