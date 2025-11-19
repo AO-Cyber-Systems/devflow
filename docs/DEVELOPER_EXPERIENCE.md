@@ -276,23 +276,25 @@ Result:
 
 **DevFlow Desktop Capabilities**:
 ```
-Complete Local Stack:
+Local Stack (Runtime + Hub):
   ✅ Database (PostgreSQL)
   ✅ Auth (GoTrue)
   ✅ Storage (S3-compatible)
   ✅ Realtime (WebSocket)
   ✅ Edge Functions (Deno)
-  ✅ Git Server (Gitea)
-  ✅ CI/CD (local runners)
-  ✅ Package Registry (all packages)
   ✅ AI Agents (local or cloud LLM)
-  ✅ All platform services
-
+  ✅ Workflow Engine
+  
+Connected Services (Remote):
+  ☁️ Git Server (DevFlow Code)
+  ☁️ CI/CD Pipelines
+  ☁️ Package Registry
+  
 Works Offline:
-  ✅ No internet required
-  ✅ All features available
-  ✅ AI agents work (using local knowledge)
-  ✅ Sync to cloud when online
+  ✅ Coding & Testing (Local Runtime)
+  ✅ AI Agents (using cached context)
+  ✅ Knowledge Search (cached)
+  ⚠️ Git Push/Pull (requires connection)
 ```
 
 **Example: Train Commute Development**:

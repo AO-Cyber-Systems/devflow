@@ -87,7 +87,7 @@ This makes DevFlow the **only self-hosted platform** that combines AI developmen
 - ✅ Lightweight local UI (inspired by ArchonOS/Hephaestus)
 
 **Deployment Modes**:
-1. **Local Dev**: Docker on laptop, .env secrets, full stack local
+1. **Local Dev**: Docker on laptop (Runtime + Hub), .env secrets, connects to remote Code
 2. **SaaS**: devflow.aocodex.ai, multi-tenant Kubernetes, managed by AOCodex
 3. **On-Prem**: Docker Compose, customer infrastructure, behind firewalls
 4. **Dedicated Cloud**: Isolated managed instance, custom domain, 99.9% SLA

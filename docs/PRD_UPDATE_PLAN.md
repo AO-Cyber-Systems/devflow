@@ -139,7 +139,7 @@ Based on our comprehensive analysis, we are expanding DevFlow from a single AI o
     - Unified SDK
 
 14. **PRD-014: DevFlow CLI**
-    - Unified command-line interface
+    - Unified command-line interface (`devflow`)
     - Commands for Hub, Code, and Runtime
     - Package management integration
     - Deployment commands

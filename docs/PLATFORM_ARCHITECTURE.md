@@ -1284,7 +1284,7 @@ Core Infrastructure:
     - pg_partman (partitioning)
   
 Application Runtime:
-  Orchestration: Kubernetes (prod) / Docker Compose (local)
+  Orchestration: Kubernetes (prod) / Docker Compose (local runtime)
   Buildpacks: Cloud Native Buildpacks
   Process Manager: Kubernetes Deployments
   Load Balancer: Kong (already in Supabase)
