@@ -1,0 +1,101 @@
+# AOCodex Preset Configuration
+# Use with: devflow init --preset aocodex
+
+version: "1"
+
+project:
+  name: aocodex
+  preset: aocodex
+
+database:
+  migrations:
+    directory: supabase/migrations
+    format: sql
+    tracking_table: schema_migrations
+    tracking_schema: public
+
+  environments:
+    local:
+      url_env: DATABASE_URL
+      direct_port: 5434
+    staging:
+      url_secret: aocodex_database_url
+      host: ao-staging-manager
+      ssh_user: deploy
+    production:
+      url_secret: aocodex_database_url
+      host: aocodex-production-manager
+      ssh_user: deploy
+      require_approval: true
+
+secrets:
+  provider: 1password
+  vault: AOCyber
+  mappings:
+    - name: database_url
+      op_item: "AOCodex Staging Database"
+      op_field: connection_string
+      github_secret: DATABASE_URL_STAGING
+      docker_secret: aocodex_database_url
+
+    - name: jwt_secret
+      op_item: "AOCodex JWT"
+      op_field: secret
+      github_secret: SUPABASE_JWT_SECRET
+      docker_secret: aocodex_jwt_secret
+
+    - name: anon_key
+      op_item: "AOCodex Supabase"
+      op_field: anon_key
+      github_secret: SUPABASE_ANON_KEY
+      docker_secret: aocodex_anon_key
+
+    - name: service_role_key
+      op_item: "AOCodex Supabase"
+      op_field: service_role_key
+      github_secret: SUPABASE_SERVICE_ROLE_KEY
+      docker_secret: aocodex_service_role_key
+
+deployment:
+  registry: ghcr.io
+  organization: ao-cyber-systems
+  services:
+    backend:
+      image: aocodex-backend
+      stack: aocodex
+      replicas: 2
+      health_endpoint: /api/v1/health/live
+    frontend:
+      image: aocodex-frontend
+      stack: aocodex
+      replicas: 2
+      health_endpoint: /
+
+  environments:
+    staging:
+      host: ao-staging-manager
+      ssh_user: deploy
+      ssh_key_secret: STAGING_SSH_KEY
+      auto_deploy_branch: main
+    production:
+      host: aocodex-production-manager
+      ssh_user: deploy
+      ssh_key_secret: PRODUCTION_SSH_KEY
+      require_approval: true
+      approval_environment: production
+
+development:
+  compose_file: docker-compose.yml
+  supabase_dir: supabase
+  services:
+    - db
+    - redis
+    - backend
+    - frontend
+  env:
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5434/postgres
+    REDIS_URL: redis://localhost:6379
+  ports:
+    backend: 8000
+    frontend: 5173
+    db: 5434

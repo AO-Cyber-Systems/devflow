@@ -1,130 +1,181 @@
-# DevFlow
+# Devflow
 
-**The Complete AI-Native Development Platform**
+Developer workflow CLI for the AOCyber ecosystem.
 
-> DevFlow combines AI orchestration, source control, and runtime infrastructure into a single self-hosted platform. It gives AI agents the comprehensive context and tools they need to autonomously build, test, and deploy software.
+## Overview
 
-[![Status](https://img.shields.io/badge/status-architecture%20complete-green)]()
-[![Documentation](https://img.shields.io/badge/docs-15%20PRDs-blue)]()
-[![License](https://img.shields.io/badge/license-TBD-gray)]()
+Devflow unifies and simplifies operations across AOCyber projects. It wraps and orchestrates GitHub CLI, 1Password CLI, Docker, and Supabase CLI to provide a consistent interface for:
 
----
+- **Database migrations** with proper locking and tracking
+- **Secrets management** from 1Password to GitHub to Docker Swarm
+- **Deployment operations** with health checks and rollback support
+- **Local development** environment setup and management
 
-## 🎯 What is DevFlow?
+## Installation
 
-DevFlow is a unified platform comprising three integrated products:
+```bash
+# Clone the repository
+git clone https://github.com/AO-Cyber-Systems/devflow.git ~/.devflow
 
-1.  **DevFlow Hub**: The "Brain" – AI orchestration, knowledge management, and adaptive workflows.
-2.  **DevFlow Code**: The "Source" – Git hosting, CI/CD, and universal package registry.
-3.  **DevFlow Runtime**: The "Infrastructure" – Complete backend (Database, Auth, Storage) and application deployment.
+# Install in development mode
+cd ~/.devflow
+pip install -e .
 
-It synthesizes the best capabilities of **Archon** (Knowledge) and **Hephaestus** (Workflows) while adding the essential infrastructure layer (Code + Runtime) to create a vertically integrated stack for AI development.
-
----
-
-## 🌟 Product Suite
-
-### 🧠 DevFlow Hub
-*AI Orchestration & Knowledge*
-- **Knowledge Hub**: Web crawling, RAG, and code indexing.
-- **Adaptive Workflows**: Semi-structured phases where agents dynamically create tasks.
-- **Guardian**: AI monitoring system to keep agents aligned.
-- **MCP Gateway**: Standardized interface for Claude Code, OpenCode, and Cursor.
-
-### 💻 DevFlow Code
-*Source Control & CI/CD*
-- **Git Server**: Self-hosted repositories with AI code review.
-- **CI/CD Pipelines**: GitHub Actions-compatible automation.
-- **Universal Registry**: Unified storage for npm, pip, Docker, apt, and more.
-- **Security**: Integrated vulnerability scanning and secret detection.
-
-### ⚡ DevFlow Runtime
-*Backend & Deployment*
-- **Backend Services**: Managed PostgreSQL, Auth, Storage, Realtime (Supabase foundation).
-- **App Deployment**: Zero-config "git push" deployment (PaaS).
-- **Observability**: Unified metrics, logs, and traces.
-- **Platform Services**: Advanced Search (Vespa), Graph (Neo4j), and Billing (Stripe).
-
----
-
-## 📖 Documentation
-
-### Quick Start
-- **[Executive Summary](EXECUTIVE_SUMMARY.md)** - The 5-minute overview.
-- **[Platform Architecture](docs/PLATFORM_ARCHITECTURE.md)** - Detailed technical design.
-
-### Detailed PRDs
-**Core Platform**
-- [PRD-001: System Overview](docs/prds/PRD-001-OVERVIEW.md)
-- [PRD-007: Secrets Management](docs/prds/PRD-007-SECRETS-MANAGEMENT.md)
-- [PRD-008: Deployment Architecture](docs/prds/PRD-008-DEPLOYMENT-ARCHITECTURE.md)
-- [PRD-009: AOSentry Integration](docs/prds/PRD-009-AOSENTRY-INTEGRATION.md)
-
-**DevFlow Hub**
-- [PRD-002: Knowledge Hub](docs/prds/PRD-002-KNOWLEDGE-HUB.md)
-- [PRD-003: Workflow Engine](docs/prds/PRD-003-WORKFLOW-ENGINE.md)
-- [PRD-004: MCP Gateway](docs/prds/PRD-004-MCP-GATEWAY.md)
-- [PRD-005: UI Dashboard](docs/prds/PRD-005-UI-DASHBOARD.md)
-- [PRD-006: Integrations](docs/prds/PRD-006-INTEGRATIONS.md)
-
-**DevFlow Code**
-- [PRD-010: DevFlow Code](docs/prds/PRD-010-DEVFLOW-CODE.md)
-
-**DevFlow Runtime**
-- [PRD-011: DevFlow Runtime](docs/prds/PRD-011-DEVFLOW-RUNTIME.md)
-- [PRD-012: DevFlow Analytics](docs/prds/PRD-012-DEVFLOW-ANALYTICS.md)
-- [PRD-013: Platform Services](docs/prds/PRD-013-PLATFORM-SERVICES.md)
-
-**Tools**
-- [PRD-014: DevFlow CLI](docs/prds/PRD-014-DEVFLOW-CLI.md)
-- [PRD-015: DevFlow Desktop](docs/prds/PRD-015-DEVFLOW-DESKTOP.md)
-
----
-
-## 🏗️ Architecture
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      DevFlow Platform                        │
-│                   ($2.22M over 24 months)                    │
-└──────────────────────────────────────────────────────────────┘
-                               │
-        ┌──────────────────────┼──────────────────────┐
-        ▼                      ▼                      ▼
-┌───────────────┐      ┌───────────────┐      ┌───────────────┐
-│  DevFlow Hub  │      │ DevFlow Code  │      │DevFlow Runtime│
-│  (Orchestrate)│      │   (Source)    │      │ (Run & Scale) │
-├───────────────┤      ├───────────────┤      ├───────────────┤
-│ Knowledge Hub │      │ Git Server    │      │ Database (PG) │
-│ Workflows     │      │ CI/CD         │      │ Auth & Storage│
-│ MCP Gateway   │      │ Registry      │      │ App Deploy    │
-│ UI Dashboard  │      │ Security      │      │ Observability │
-└───────────────┘      └───────────────┘      └───────────────┘
+# Verify installation
+devflow doctor
 ```
 
----
+## Quick Start
 
-## 🚀 Roadmap
+```bash
+# Initialize devflow in your project
+cd your-project
+devflow init --preset aocodex
 
-- **Phase 1 (Months 1-12)**: **DevFlow Hub MVP**. Knowledge management, workflows, and basic orchestration.
-- **Phase 2 (Months 3-18)**: **DevFlow Code**. Git hosting, CI/CD, and package registry.
-- **Phase 3 (Months 1-24)**: **DevFlow Runtime**. Complete backend services and deployment engine.
-- **Phase 4 (Months 19-24)**: **Analytics & Polish**. Advanced analytics, desktop app, and enterprise hardening.
+# Check system health
+devflow doctor
 
----
+# Check migration status
+devflow db status
 
-## 📞 Contact & Community
+# Apply pending migrations
+devflow db migrate --env staging
 
-- **Status**: Architecture Design Complete
-- **Next Step**: Phase 1 Implementation
-- **Contribution**: See [PRD Index](docs/prds/README.md) to review specifications.
+# Deploy to staging
+devflow deploy staging
+```
 
----
+## Commands
 
-<div align="center">
+### Database Operations
 
-**DevFlow**: Where AI agents have comprehensive context and workflows adapt to reality.
+```bash
+devflow db status                    # Show migration status
+devflow db status --env staging      # Check staging database
+devflow db migrate                   # Apply pending migrations
+devflow db migrate --dry-run         # Preview migrations
+devflow db create "add_user_prefs"   # Create new migration file
+devflow db connect --env staging     # Open psql session
+```
 
-[📖 Read the Docs](docs/prds/README.md) • [🎯 Executive Summary](EXECUTIVE_SUMMARY.md)
+### Secrets Management
 
-</div>
+```bash
+devflow secrets list                 # List configured secrets
+devflow secrets sync --from 1password --to github
+devflow secrets sync --from 1password --to docker
+devflow secrets verify               # Check secrets are in sync
+```
+
+### Deployment
+
+```bash
+devflow deploy status                # Show deployment status
+devflow deploy staging               # Deploy to staging
+devflow deploy staging --migrate     # Deploy with migrations
+devflow deploy production            # Deploy to production (requires confirmation)
+devflow deploy rollback              # Rollback to previous version
+devflow deploy logs backend          # View service logs
+```
+
+### Local Development
+
+```bash
+devflow dev setup                    # Set up local environment
+devflow dev start                    # Start local services
+devflow dev stop                     # Stop local services
+devflow dev logs backend             # View local logs
+devflow dev shell backend            # Shell into container
+devflow dev reset --volumes          # Reset everything
+```
+
+## Configuration
+
+Create a `devflow.yml` in your project root:
+
+```yaml
+version: "1"
+
+project:
+  name: my-project
+  preset: aocodex  # Optional: use built-in preset
+
+database:
+  migrations:
+    directory: supabase/migrations
+    format: sql
+    tracking_table: schema_migrations
+
+  environments:
+    local:
+      url_env: DATABASE_URL
+    staging:
+      url_secret: my_project_database_url
+      host: staging-server
+      ssh_user: deploy
+
+secrets:
+  provider: 1password
+  vault: MyVault
+  mappings:
+    - name: database_url
+      op_item: "My Project Database"
+      op_field: connection_string
+      github_secret: DATABASE_URL
+      docker_secret: my_project_database_url
+
+deployment:
+  registry: ghcr.io
+  organization: my-org
+  services:
+    backend:
+      image: my-project-backend
+      stack: myproject
+      health_endpoint: /health
+
+development:
+  compose_file: docker-compose.yml
+  services:
+    - db
+    - backend
+```
+
+## Built-in Presets
+
+Devflow includes presets for AOCyber projects:
+
+- `aocodex` - AOCodex AI coding assistant
+- `aosentry` - AOSentry AI gateway
+
+Use with: `devflow init --preset aocodex`
+
+## Requirements
+
+Devflow wraps these tools (install them first):
+
+- **gh** - GitHub CLI ([install](https://cli.github.com/))
+- **op** - 1Password CLI ([install](https://1password.com/downloads/command-line/))
+- **docker** - Docker Engine ([install](https://docs.docker.com/get-docker/))
+- **supabase** - Supabase CLI ([install](https://supabase.com/docs/guides/cli))
+- **psql** - PostgreSQL client
+
+Run `devflow doctor` to check installation status.
+
+## Development
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run linting
+black devflow tests
+ruff check devflow tests
+mypy devflow
+```
+
+## License
+
+MIT
