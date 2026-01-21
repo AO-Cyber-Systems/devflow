@@ -43,6 +43,11 @@ def check_authentication(tool: str) -> tuple[bool, str]:
             result = subprocess.run(["docker", "info"], capture_output=True, text=True, timeout=10)
             return result.returncode == 0, "Running" if result.returncode == 0 else "Not running"
 
+        elif tool == "supabase":
+            # For self-hosted, no auth is needed - just check if CLI works
+            result = subprocess.run(["supabase", "--version"], capture_output=True, text=True, timeout=10)
+            return result.returncode == 0, "Ready (self-hosted)" if result.returncode == 0 else "Not working"
+
     except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
         pass
 
@@ -92,7 +97,7 @@ def doctor(
     console.print(table)
 
     # Check authentication for installed tools
-    auth_tools = ["gh", "op", "docker"]
+    auth_tools = ["gh", "op", "docker", "supabase"]
     auth_table = Table(title="\nAuthentication Status")
     auth_table.add_column("Tool", style="cyan")
     auth_table.add_column("Status", style="bold")

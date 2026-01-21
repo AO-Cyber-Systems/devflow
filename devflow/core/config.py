@@ -28,9 +28,10 @@ class MigrationsConfig(BaseModel):
     """Migration settings."""
 
     directory: str = "supabase/migrations"
-    format: str = "sql"  # sql, prisma, alembic
+    format: str = "sql"  # sql, supabase, prisma, alembic
     tracking_table: str = "schema_migrations"
     tracking_schema: str = "public"
+    use_supabase_cli: bool = False  # Force Supabase CLI executor even with format: sql
 
 
 class DatabaseConfig(BaseModel):

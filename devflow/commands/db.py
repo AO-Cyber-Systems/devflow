@@ -1,5 +1,7 @@
 """Database and migration commands."""
 
+import json
+import sys
 from typing import Optional
 
 import typer
@@ -12,29 +14,44 @@ console = Console()
 @app.command()
 def status(
     env: str = typer.Option("local", "--env", "-e", help="Environment (local, staging, production)"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
 ) -> None:
     """Show migration status for the specified environment."""
-    console.print(f"[bold]Migration Status[/bold] ({env})\n")
-
     from devflow.core.config import load_project_config
-    from devflow.migrations.tracker import MigrationTracker
+    from devflow.migrations.engine import MigrationEngine
 
     config = load_project_config()
     if not config:
-        console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
+        if json_output:
+            print(json.dumps({"success": False, "error": "No devflow.yml found"}))
+        else:
+            console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
         raise typer.Exit(1)
 
-    tracker = MigrationTracker(config, env)
-    status = tracker.get_status()
+    engine = MigrationEngine(config, env)
+    status_data = engine.get_status()
 
-    console.print(f"  Applied:  {status['applied']}")
-    console.print(f"  Pending:  {status['pending']}")
-    console.print(f"  Total:    {status['total']}")
+    if json_output:
+        print(json.dumps({
+            "success": True,
+            "environment": env,
+            "executor": status_data.get("executor", "sql"),
+            "applied": status_data["applied"],
+            "pending": status_data["pending"],
+            "total": status_data["total"],
+            "pending_files": status_data["pending_files"],
+        }))
+    else:
+        console.print(f"[bold]Migration Status[/bold] ({env})\n")
+        console.print(f"  Executor: {status_data.get('executor', 'sql')}")
+        console.print(f"  Applied:  {status_data['applied']}")
+        console.print(f"  Pending:  {status_data['pending']}")
+        console.print(f"  Total:    {status_data['total']}")
 
-    if status["pending_files"]:
-        console.print("\n[yellow]Pending migrations:[/yellow]")
-        for f in status["pending_files"]:
-            console.print(f"  - {f}")
+        if status_data["pending_files"]:
+            console.print("\n[yellow]Pending migrations:[/yellow]")
+            for f in status_data["pending_files"]:
+                console.print(f"  - {f}")
 
 
 @app.command()
@@ -42,6 +59,7 @@ def migrate(
     env: str = typer.Option("local", "--env", "-e", help="Environment (local, staging, production)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be applied without executing"),
     ci: bool = typer.Option(False, "--ci", help="Running in CI mode (non-interactive)"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON (for CI parsing)"),
 ) -> None:
     """Apply pending migrations to the specified environment."""
     from devflow.core.config import load_project_config
@@ -49,39 +67,68 @@ def migrate(
 
     config = load_project_config()
     if not config:
-        console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
+        if json_output:
+            print(json.dumps({"success": False, "error": "No devflow.yml found"}))
+        else:
+            console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
         raise typer.Exit(1)
 
-    # Production requires confirmation
+    # Production requires confirmation (skip in CI mode)
     if env == "production" and not ci and not dry_run:
         confirm = typer.confirm(
             "[yellow]You are about to run migrations on PRODUCTION. Are you sure?[/yellow]",
             default=False,
         )
         if not confirm:
-            console.print("Aborted.")
+            if json_output:
+                print(json.dumps({"success": False, "error": "Aborted by user"}))
+            else:
+                console.print("Aborted.")
             raise typer.Exit(0)
 
     engine = MigrationEngine(config, env)
 
     if dry_run:
-        console.print(f"[bold]Dry Run - Migrations for {env}[/bold]\n")
         pending = engine.get_pending_migrations()
-        if not pending:
-            console.print("[green]No pending migrations.[/green]")
-            return
 
-        console.print(f"Would apply {len(pending)} migration(s):")
-        for m in pending:
-            console.print(f"  - {m}")
-    else:
-        console.print(f"[bold]Applying migrations to {env}...[/bold]\n")
-        result = engine.apply_migrations()
-
-        if result["success"]:
-            console.print(f"[green]Applied {result['applied']} migration(s).[/green]")
+        if json_output:
+            print(json.dumps({
+                "success": True,
+                "dry_run": True,
+                "environment": env,
+                "pending_count": len(pending),
+                "pending_migrations": pending,
+            }))
         else:
-            console.print(f"[red]Migration failed: {result['error']}[/red]")
+            console.print(f"[bold]Dry Run - Migrations for {env}[/bold]\n")
+            if not pending:
+                console.print("[green]No pending migrations.[/green]")
+                return
+
+            console.print(f"Would apply {len(pending)} migration(s):")
+            for m in pending:
+                console.print(f"  - {m}")
+    else:
+        if not json_output:
+            console.print(f"[bold]Applying migrations to {env}...[/bold]\n")
+
+        result = engine.apply_migrations(ci_mode=ci)
+
+        if json_output:
+            print(json.dumps({
+                "success": result["success"],
+                "environment": env,
+                "applied": result["applied"],
+                "skipped": result["skipped"],
+                "error": result["error"],
+            }))
+        else:
+            if result["success"]:
+                console.print(f"[green]Applied {result['applied']} migration(s).[/green]")
+            else:
+                console.print(f"[red]Migration failed: {result['error']}[/red]")
+
+        if not result["success"]:
             raise typer.Exit(1)
 
 
