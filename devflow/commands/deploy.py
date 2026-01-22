@@ -645,6 +645,13 @@ def ssh(
 
     # Check if we need to get SSH key from 1Password
     if env_config.ssh_key_secret:
+        if config.secrets is None or config.secrets.vault is None:
+            if json_output:
+                print(json.dumps({"success": False, "error": "Secrets not configured (required for SSH key)"}))
+            else:
+                console.print("[red]Secrets not configured in devflow.yml (required for SSH key)[/red]")
+            raise typer.Exit(1)
+
         op = OnePasswordProvider()
         if not op.is_authenticated():
             if json_output:

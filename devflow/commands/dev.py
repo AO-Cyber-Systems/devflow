@@ -17,6 +17,7 @@ def setup(
     from pathlib import Path
 
     from devflow.core.config import load_project_config
+    from devflow.core.git import configure_git_user
     from devflow.providers.docker import DockerProvider
     from devflow.providers.onepassword import OnePasswordProvider
 
@@ -62,13 +63,24 @@ def setup(
     if not json_output:
         console.print("[green]2. Config[/green] - loaded")
 
-    # Step 3: Pull Docker images
+    # Step 3: Configure git
+    git_result = configure_git_user(config)
+    if git_result["status"] == "ok":
+        steps.append({"name": "git_config", "status": "ok", "message": git_result["message"]})
+        if not json_output:
+            console.print(f"[green]3. Git[/green] - {git_result['message']}")
+    else:
+        steps.append({"name": "git_config", "status": "skipped", "message": git_result["message"]})
+        if not json_output:
+            console.print(f"[dim]3. Git[/dim] - {git_result['message']}")
+
+    # Step 4: Pull Docker images
     compose_file = config.development.compose_file
     compose_path = Path(compose_file)
 
     if compose_path.exists():
         if not json_output:
-            console.print("[dim]3. Pulling images...[/dim]")
+            console.print("[dim]4. Pulling images...[/dim]")
 
         try:
             result = subprocess.run(
@@ -80,37 +92,41 @@ def setup(
             if result.returncode == 0:
                 steps.append({"name": "pull_images", "status": "ok", "message": "Images pulled"})
                 if not json_output:
-                    console.print("[green]3. Images[/green] - pulled")
+                    console.print("[green]4. Images[/green] - pulled")
             else:
                 steps.append({"name": "pull_images", "status": "warning", "message": "Some images may not have pulled"})
                 if not json_output:
-                    console.print("[yellow]3. Images[/yellow] - some warnings (non-fatal)")
+                    console.print("[yellow]4. Images[/yellow] - some warnings (non-fatal)")
         except subprocess.TimeoutExpired:
             steps.append({"name": "pull_images", "status": "warning", "message": "Pull timed out"})
             if not json_output:
-                console.print("[yellow]3. Images[/yellow] - timed out (continuing)")
+                console.print("[yellow]4. Images[/yellow] - timed out (continuing)")
         except Exception as e:
             steps.append({"name": "pull_images", "status": "warning", "message": str(e)})
             if not json_output:
-                console.print(f"[yellow]3. Images[/yellow] - {e}")
+                console.print(f"[yellow]4. Images[/yellow] - {e}")
     else:
         steps.append({"name": "pull_images", "status": "skipped", "message": f"No {compose_file} found"})
         if not json_output:
-            console.print(f"[dim]3. Images[/dim] - skipped (no {compose_file})")
+            console.print(f"[dim]4. Images[/dim] - skipped (no {compose_file})")
 
-    # Step 4: Set up .env from template
+    # Step 5: Set up .env from template
     env_template = Path(".env.template")
     env_local = Path(".env.local")
     env_file = Path(".env")
 
     if env_template.exists():
         if not json_output:
-            console.print("[dim]4. Setting up environment...[/dim]")
+            console.print("[dim]5. Setting up environment...[/dim]")
 
         template_content = env_template.read_text()
 
-        # Check if template has 1Password references
-        if "op://" in template_content:
+        # Check if template has 1Password references and provider is configured
+        use_1password = (
+            "op://" in template_content and config.secrets is not None and config.secrets.provider == "1password"
+        )
+
+        if use_1password:
             op = OnePasswordProvider()
             if op.is_authenticated():
                 try:
@@ -120,7 +136,7 @@ def setup(
                         {"name": "env_setup", "status": "ok", "message": "Environment resolved from 1Password"}
                     )
                     if not json_output:
-                        console.print("[green]4. Environment[/green] - resolved from 1Password")
+                        console.print("[green]5. Environment[/green] - resolved from 1Password")
                 except Exception as e:
                     # Fall back to copying template as-is
                     env_local.write_text(template_content)
@@ -128,32 +144,32 @@ def setup(
                         {"name": "env_setup", "status": "warning", "message": f"Could not resolve secrets: {e}"}
                     )
                     if not json_output:
-                        console.print(f"[yellow]4. Environment[/yellow] - copied template (could not resolve: {e})")
+                        console.print(f"[yellow]5. Environment[/yellow] - copied template (could not resolve: {e})")
             else:
                 # Copy template as-is if not authenticated
                 env_local.write_text(template_content)
                 steps.append({"name": "env_setup", "status": "warning", "message": "1Password not authenticated"})
                 if not json_output:
-                    console.print("[yellow]4. Environment[/yellow] - copied template (1Password not authenticated)")
+                    console.print("[yellow]5. Environment[/yellow] - copied template (1Password not authenticated)")
         else:
-            # No 1Password references, just copy
+            # No secrets provider or no 1Password references, just copy
             env_local.write_text(template_content)
             steps.append({"name": "env_setup", "status": "ok", "message": "Environment file created"})
             if not json_output:
-                console.print("[green]4. Environment[/green] - created .env.local")
+                console.print("[green]5. Environment[/green] - created .env.local")
     elif not env_file.exists() and not env_local.exists():
         steps.append({"name": "env_setup", "status": "skipped", "message": "No .env.template found"})
         if not json_output:
-            console.print("[dim]4. Environment[/dim] - skipped (no template)")
+            console.print("[dim]5. Environment[/dim] - skipped (no template)")
     else:
         steps.append({"name": "env_setup", "status": "ok", "message": "Environment file exists"})
         if not json_output:
-            console.print("[green]4. Environment[/green] - already exists")
+            console.print("[green]5. Environment[/green] - already exists")
 
-    # Step 5: Start infrastructure if configured
+    # Step 6: Start infrastructure if configured
     if config.infrastructure.enabled:
         if not json_output:
-            console.print("[dim]5. Starting infrastructure...[/dim]")
+            console.print("[dim]6. Starting infrastructure...[/dim]")
 
         try:
             from devflow.providers.infrastructure import InfrastructureProvider
@@ -164,19 +180,19 @@ def setup(
             if infra_result.success:
                 steps.append({"name": "infrastructure", "status": "ok", "message": "Infrastructure started"})
                 if not json_output:
-                    console.print("[green]5. Infrastructure[/green] - started (Traefik)")
+                    console.print("[green]6. Infrastructure[/green] - started (Traefik)")
             else:
                 steps.append({"name": "infrastructure", "status": "warning", "message": infra_result.message})
                 if not json_output:
-                    console.print(f"[yellow]5. Infrastructure[/yellow] - {infra_result.message}")
+                    console.print(f"[yellow]6. Infrastructure[/yellow] - {infra_result.message}")
         except Exception as e:
             steps.append({"name": "infrastructure", "status": "warning", "message": str(e)})
             if not json_output:
-                console.print(f"[yellow]5. Infrastructure[/yellow] - {e}")
+                console.print(f"[yellow]6. Infrastructure[/yellow] - {e}")
     else:
         steps.append({"name": "infrastructure", "status": "skipped", "message": "Not enabled in config"})
         if not json_output:
-            console.print("[dim]5. Infrastructure[/dim] - skipped (not enabled)")
+            console.print("[dim]6. Infrastructure[/dim] - skipped (not enabled)")
 
     # Summary
     success = all(s["status"] in ("ok", "skipped", "warning") for s in steps)

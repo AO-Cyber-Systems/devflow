@@ -2,10 +2,13 @@
 
 import shutil
 import subprocess
+from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.table import Table
+
+from devflow.core.config import DEVFLOW_HOME, is_devflow_initialized, load_global_config
 
 console = Console()
 
@@ -115,23 +118,39 @@ def doctor(
     # Check for devflow configuration
     console.print("\n[bold]Configuration Status[/bold]")
 
-    from pathlib import Path
+    # Check global setup
+    global_config_path = DEVFLOW_HOME / "config.yml"
+    if is_devflow_initialized():
+        global_config = load_global_config()
+        console.print("  [green]Global setup:[/green] Completed")
+        console.print(f"  [green]Global config:[/green] {global_config_path}")
+        if global_config.git.user_name:
+            console.print(f"    Git name: {global_config.git.user_name}")
+        if global_config.git.user_email:
+            console.print(f"    Git email: {global_config.git.user_email}")
+    else:
+        console.print("  [yellow]Global setup:[/yellow] Not completed (run 'devflow install' first)")
+        if global_config_path.exists():
+            console.print(f"  [dim]Global config:[/dim] {global_config_path} (setup incomplete)")
+        else:
+            console.print("  [dim]Global config:[/dim] Not found")
 
+    # Check project config
     config_path = Path.cwd() / "devflow.yml"
-    global_config_path = Path.home() / ".config" / "devflow" / "config.yml"
-
     if config_path.exists():
         console.print(f"  [green]Project config:[/green] {config_path}")
     else:
         console.print("  [yellow]Project config:[/yellow] Not found (run 'devflow init' to create)")
 
-    if global_config_path.exists():
-        console.print(f"  [green]Global config:[/green] {global_config_path}")
-    else:
-        console.print(f"  [dim]Global config:[/dim] Not found at {global_config_path}")
-
     # Summary
     console.print("\n[bold]Summary[/bold]")
+
+    # Check global setup first
+    if not is_devflow_initialized():
+        console.print("  [yellow]⚠ Devflow not set up.[/yellow]")
+        console.print("    Run: [bold]devflow install[/bold]")
+        console.print()
+
     if all_installed:
         console.print("  [green]All required tools are installed.[/green]")
     else:
