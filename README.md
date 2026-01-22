@@ -28,6 +28,9 @@ A comprehensive CLI tool for managing local development environments, database m
 # Install devflow
 pip install devflow
 
+# First-time setup (creates ~/.devflow/, configures git, installs Claude plugin)
+devflow install
+
 # Initialize in your project
 cd your-project
 devflow init
