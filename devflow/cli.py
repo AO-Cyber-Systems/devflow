@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 
 from devflow import __version__
-from devflow.commands import config, db, deploy, dev, doctor, secrets
+from devflow.commands import config, db, deploy, dev, doctor, infra, install, secrets
 
 app = typer.Typer(
     name="devflow",
@@ -21,6 +21,7 @@ app.add_typer(secrets.app, name="secrets", help="Secrets management")
 app.add_typer(deploy.app, name="deploy", help="Deployment operations")
 app.add_typer(dev.app, name="dev", help="Local development commands")
 app.add_typer(config.app, name="config", help="Configuration management")
+app.add_typer(infra.app, name="infra", help="Shared development infrastructure")
 
 
 @app.command()
@@ -40,8 +41,10 @@ def version() -> None:
     console.print(f"devflow version {__version__}")
 
 
-# Register doctor command at root level
+# Register root-level commands
 app.command(name="doctor")(doctor.doctor)
+app.command(name="install")(install.install)
+app.command(name="uninstall")(install.uninstall)
 
 
 @app.callback()

@@ -71,11 +71,129 @@ def env(
         console.print(f"Current environment: [bold]{current}[/bold]")
 
 
+def _parse_value(value: str):
+    """Parse a string value to the appropriate Python type."""
+    import json as json_lib
+
+    # Boolean
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+
+    # Integer
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    # Float
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    # JSON array or object
+    if value.startswith("[") or value.startswith("{"):
+        try:
+            return json_lib.loads(value)
+        except json_lib.JSONDecodeError:
+            pass
+
+    # String (default)
+    return value
+
+
+def _set_nested_value(data: dict, keys: list[str], value) -> None:
+    """Set a value in a nested dictionary using a list of keys."""
+    for key in keys[:-1]:
+        if key not in data:
+            data[key] = {}
+        data = data[key]
+    data[keys[-1]] = value
+
+
+def _get_nested_value(data: dict, keys: list[str]):
+    """Get a value from a nested dictionary using a list of keys."""
+    for key in keys:
+        if not isinstance(data, dict) or key not in data:
+            return None
+        data = data[key]
+    return data
+
+
 @app.command("set")
 def set_value(
     key: str = typer.Argument(..., help="Configuration key (e.g., 'database.migrations.directory')"),
     value: str = typer.Argument(..., help="Value to set"),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ) -> None:
     """Set a configuration value."""
-    console.print("[yellow]Configuration editing not yet implemented.[/yellow]")
-    console.print(f"Would set {key} = {value}")
+    import json as json_lib
+    from pathlib import Path
+
+    import yaml
+
+    from devflow.core.config import load_project_config, validate_config
+
+    config_path = Path.cwd() / "devflow.yml"
+    if not config_path.exists():
+        if json_output:
+            print(json_lib.dumps({"success": False, "error": "No devflow.yml found"}))
+        else:
+            console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
+        raise typer.Exit(1)
+
+    # Load raw YAML to preserve structure/comments
+    with open(config_path) as f:
+        raw_config = yaml.safe_load(f)
+
+    # Parse the key path
+    keys = key.split(".")
+    if not keys:
+        if json_output:
+            print(json_lib.dumps({"success": False, "error": "Invalid key"}))
+        else:
+            console.print("[red]Invalid key.[/red]")
+        raise typer.Exit(1)
+
+    # Get the old value for reporting
+    old_value = _get_nested_value(raw_config, keys)
+
+    # Parse the new value
+    parsed_value = _parse_value(value)
+
+    # Set the new value
+    _set_nested_value(raw_config, keys, parsed_value)
+
+    # Write back to file
+    with open(config_path, "w") as f:
+        yaml.dump(raw_config, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+
+    # Validate the updated config
+    errors = validate_config(config_path)
+    if errors:
+        if json_output:
+            print(json_lib.dumps({
+                "success": False,
+                "error": "Configuration validation failed",
+                "validation_errors": errors,
+            }))
+        else:
+            console.print("[red]Configuration validation failed:[/red]")
+            for error in errors:
+                console.print(f"  {error}")
+            console.print("\n[yellow]The configuration was saved but may be invalid.[/yellow]")
+        raise typer.Exit(1)
+
+    if json_output:
+        print(json_lib.dumps({
+            "success": True,
+            "key": key,
+            "old_value": old_value,
+            "new_value": parsed_value,
+        }))
+    else:
+        console.print(f"[green]Updated:[/green] {key}")
+        console.print(f"  Old: {old_value}")
+        console.print(f"  New: {parsed_value}")

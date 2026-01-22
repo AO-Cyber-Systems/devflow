@@ -154,10 +154,123 @@ def rollback(
     env: str = typer.Option("local", "--env", "-e", help="Environment"),
     steps: int = typer.Option(1, "--steps", "-n", help="Number of migrations to rollback"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be rolled back"),
+    force: bool = typer.Option(False, "--force", help="Force rollback on production"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
 ) -> None:
     """Rollback the last migration(s)."""
-    console.print("[yellow]Rollback is not yet implemented.[/yellow]")
-    console.print("For now, create a new migration that reverses the changes.")
+    from pathlib import Path
+
+    from devflow.core.config import load_project_config
+    from devflow.migrations.executors.sql import SQLExecutor
+
+    config = load_project_config()
+    if not config:
+        if json_output:
+            print(json.dumps({"success": False, "error": "No devflow.yml found"}))
+        else:
+            console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
+        raise typer.Exit(1)
+
+    # Production requires --force
+    if env == "production" and not force and not dry_run:
+        if json_output:
+            print(json.dumps({"success": False, "error": "Production rollback requires --force flag"}))
+        else:
+            console.print("[red]Production rollback requires --force flag.[/red]")
+            console.print("Use: devflow db rollback --env production --force")
+        raise typer.Exit(1)
+
+    executor = SQLExecutor(config, env)
+    db_url = executor.get_db_url()
+
+    if not db_url:
+        if json_output:
+            print(json.dumps({"success": False, "error": f"No database URL configured for {env}"}))
+        else:
+            console.print(f"[red]No database URL configured for {env}[/red]")
+        raise typer.Exit(1)
+
+    # Get applied migrations
+    applied = executor.get_applied_with_connection(db_url)
+    if not applied:
+        if json_output:
+            print(json.dumps({"success": True, "rolled_back": 0, "message": "No applied migrations to rollback"}))
+        else:
+            console.print("[yellow]No applied migrations to rollback.[/yellow]")
+        return
+
+    # Get the last N migrations
+    migrations_to_rollback = applied[-steps:][::-1]  # Reverse to rollback in correct order
+
+    if not json_output:
+        console.print(f"[bold]Rollback {len(migrations_to_rollback)} migration(s)[/bold] ({env})\n")
+        if dry_run:
+            console.print("[dim]Dry run - no changes will be made[/dim]\n")
+
+    migrations_dir = Path(config.database.migrations.directory)
+    results = []
+    rolled_back = 0
+    failed = 0
+
+    for migration_name in migrations_to_rollback:
+        result = {"migration": migration_name, "status": "pending"}
+
+        # Look for down migration file
+        down_file = migrations_dir / migration_name.replace(".sql", ".down.sql")
+
+        if not down_file.exists():
+            result["status"] = "error"
+            result["error"] = f"No .down.sql file found"
+
+            if not json_output:
+                console.print(f"[red]Error:[/red] No rollback file for {migration_name}")
+                console.print(f"  Expected: {down_file}")
+
+            failed += 1
+            results.append(result)
+            break  # Stop on first error to prevent inconsistent state
+
+        if dry_run:
+            result["status"] = "would_rollback"
+            result["down_file"] = str(down_file)
+            results.append(result)
+
+            if not json_output:
+                console.print(f"Would rollback: [bold]{migration_name}[/bold]")
+                console.print(f"  Using: {down_file.name}")
+
+            continue
+
+        # Execute rollback
+        rollback_result = executor.rollback_migration(migration_name, down_file.read_text())
+
+        if rollback_result.success:
+            result["status"] = "rolled_back"
+            rolled_back += 1
+            if not json_output:
+                console.print(f"[green]Rolled back:[/green] {migration_name}")
+        else:
+            result["status"] = "error"
+            result["error"] = rollback_result.error
+            failed += 1
+            if not json_output:
+                console.print(f"[red]Failed:[/red] {migration_name}")
+                console.print(f"  Error: {rollback_result.error}")
+            break  # Stop on first error
+
+        results.append(result)
+
+    if json_output:
+        print(json.dumps({
+            "success": failed == 0,
+            "environment": env,
+            "dry_run": dry_run,
+            "rolled_back": rolled_back,
+            "failed": failed,
+            "results": results,
+        }))
+    elif not dry_run:
+        console.print(f"\n[dim]Rolled back: {rolled_back}, Failed: {failed}[/dim]")
 
 
 @app.command()

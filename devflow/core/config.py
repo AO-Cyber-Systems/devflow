@@ -97,6 +97,36 @@ class DevelopmentConfig(BaseModel):
     ports: dict[str, int] = Field(default_factory=dict)
 
 
+class TraefikConfig(BaseModel):
+    """Traefik configuration for shared infrastructure."""
+
+    http_port: int = 80
+    https_port: int = 443
+    dashboard_port: int = 8088  # Avoid conflict with common services on 8080
+    dashboard_enabled: bool = True
+    log_level: str = "INFO"
+
+
+class CertificatesConfig(BaseModel):
+    """Certificate configuration for local TLS."""
+
+    domains: list[str] = Field(
+        default_factory=lambda: ["*.localhost", "*.aocodex.localhost", "*.aosentry.localhost"]
+    )
+    cert_dir: str = "~/.devflow/certs"
+
+
+class InfrastructureConfig(BaseModel):
+    """Shared infrastructure configuration for local development."""
+
+    enabled: bool = True
+    network_name: str = "devflow-proxy"
+    # Legacy network names to replace during compose transformation
+    legacy_networks: list[str] = Field(default_factory=lambda: ["proxy", "aosentry-proxy"])
+    traefik: TraefikConfig = Field(default_factory=TraefikConfig)
+    certificates: CertificatesConfig = Field(default_factory=CertificatesConfig)
+
+
 class ProjectConfig(BaseModel):
     """Project metadata."""
 
@@ -113,6 +143,7 @@ class DevflowConfig(BaseModel):
     secrets: SecretsConfig = Field(default_factory=SecretsConfig)
     deployment: DeploymentConfig = Field(default_factory=DeploymentConfig)
     development: DevelopmentConfig = Field(default_factory=DevelopmentConfig)
+    infrastructure: InfrastructureConfig = Field(default_factory=InfrastructureConfig)
 
     def get_database_url(self, env: str) -> Optional[str]:
         """Get database URL for the specified environment."""

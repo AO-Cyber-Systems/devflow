@@ -1,0 +1,18 @@
+# Traefik Dynamic TLS Configuration
+# This file is placed in /etc/traefik/dynamic/ and watched for changes
+
+tls:
+  certificates:
+    - certFile: /certs/cert.pem
+      keyFile: /certs/key.pem
+
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/cert.pem
+        keyFile: /certs/key.pem
+
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: false

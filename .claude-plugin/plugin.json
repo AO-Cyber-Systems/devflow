@@ -1,0 +1,18 @@
+{
+  "name": "devflow",
+  "version": "0.1.0",
+  "description": "Developer workflow CLI integration - database migrations, deployments, local dev, and multi-project management for the AOCyber ecosystem",
+  "author": {
+    "name": "AOCyber"
+  },
+  "repository": "https://github.com/AO-Cyber-Systems/devflow",
+  "license": "MIT",
+  "keywords": [
+    "devflow",
+    "migrations",
+    "deployment",
+    "docker",
+    "supabase",
+    "local-dev"
+  ]
+}

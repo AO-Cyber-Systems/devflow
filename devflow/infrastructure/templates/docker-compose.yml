@@ -1,0 +1,33 @@
+# Traefik Docker Compose Template
+# This is a reference template - devflow infra uses docker run directly
+# Can be used for manual setup or customization
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: devflow-traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS
+      - "8080:8080"   # Dashboard
+      - "5432:5432"   # PostgreSQL (TCP passthrough)
+      - "6379:6379"   # Redis (TCP passthrough)
+      - "587:587"     # SMTP (TCP passthrough)
+      - "6334:6334"   # Qdrant gRPC (TCP passthrough)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DEVFLOW_HOME:-~/.devflow}/infrastructure/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ${DEVFLOW_HOME:-~/.devflow}/infrastructure/dynamic:/etc/traefik/dynamic:ro
+      - ${DEVFLOW_HOME:-~/.devflow}/certs:/certs:ro
+    networks:
+      - devflow-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls=true"
+
+networks:
+  devflow-proxy:
+    external: true

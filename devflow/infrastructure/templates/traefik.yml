@@ -1,0 +1,44 @@
+# Traefik Static Configuration Template
+# This template is used by devflow infra to generate the Traefik configuration
+# Variables in ${} syntax are replaced at runtime
+
+api:
+  dashboard: ${DASHBOARD_ENABLED}
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+  # Additional entrypoints for TCP services
+  postgres:
+    address: ":5432"
+  redis:
+    address: ":6379"
+  smtp:
+    address: ":587"
+  qdrant-grpc:
+    address: ":6334"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: ${NETWORK_NAME}
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+tls:
+  certificates:
+    - certFile: /certs/cert.pem
+      keyFile: /certs/key.pem
+
+log:
+  level: ${LOG_LEVEL}
