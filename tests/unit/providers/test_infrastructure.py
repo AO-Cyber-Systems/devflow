@@ -65,7 +65,7 @@ class TestInfrastructureProvider:
         """Test provider with default config."""
         provider = InfrastructureProvider()
         assert provider.config.network_name == "devflow-proxy"
-        assert provider.config.enabled is True
+        assert provider.config.enabled is False  # Disabled by default - user opts in
 
     def test_custom_config(self) -> None:
         """Test provider with custom config."""

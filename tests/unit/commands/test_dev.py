@@ -185,6 +185,7 @@ class TestDevSetupCommand:
             mock_config = MagicMock()
             mock_config.development.compose_file = "docker-compose.yml"
             mock_config.infrastructure.enabled = False
+            mock_config.secrets.provider = "1password"  # Enable 1Password
             mock_load_config.return_value = mock_config
 
             result = runner.invoke(app, ["setup", "--json"])
@@ -227,6 +228,7 @@ class TestDevSetupCommand:
             mock_config = MagicMock()
             mock_config.development.compose_file = "docker-compose.yml"
             mock_config.infrastructure.enabled = False
+            mock_config.secrets.provider = "1password"  # Enable 1Password
             mock_load_config.return_value = mock_config
 
             result = runner.invoke(app, ["setup", "--json"])

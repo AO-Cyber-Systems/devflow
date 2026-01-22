@@ -129,7 +129,9 @@ class TestComposeTransformer:
         compose_file = tmp_path / "docker-compose.yml"
         compose_file.write_text(yaml.dump(compose_content))
 
-        transformer = ComposeTransformer()
+        # Create config with legacy_networks to enable proxy replacement
+        config = InfrastructureConfig(legacy_networks=["proxy"])
+        transformer = ComposeTransformer(config)
         result = transformer.transform(compose_file)
 
         assert result.success is True
@@ -445,7 +447,9 @@ class TestNetworkTransformation:
         compose_file = tmp_path / "docker-compose.yml"
         compose_file.write_text(yaml.dump(compose_content))
 
-        transformer = ComposeTransformer()
+        # Create config with legacy_networks to enable proxy replacement
+        config = InfrastructureConfig(legacy_networks=["proxy"])
+        transformer = ComposeTransformer(config)
         result = transformer.transform(compose_file)
 
         assert result.success is True
