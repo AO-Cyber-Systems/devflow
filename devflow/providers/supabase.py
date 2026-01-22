@@ -4,7 +4,6 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from devflow.providers.base import Provider
 
@@ -16,7 +15,7 @@ class MigrationResult:
     success: bool
     applied_count: int
     message: str
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
@@ -25,7 +24,7 @@ class DiffResult:
 
     has_changes: bool
     diff_sql: str
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class SupabaseProvider(Provider):
@@ -149,7 +148,7 @@ class SupabaseProvider(Provider):
         self,
         db_url: str,
         migrations_dir: str = "supabase/migrations",
-        migration_name: Optional[str] = None,
+        migration_name: str | None = None,
     ) -> DiffResult:
         """Generate schema diff between local migrations and remote database.
 
@@ -323,11 +322,7 @@ class SupabaseProvider(Provider):
 
             warnings = []
             if result.stdout:
-                warnings = [
-                    line.strip()
-                    for line in result.stdout.split("\n")
-                    if line.strip()
-                ]
+                warnings = [line.strip() for line in result.stdout.split("\n") if line.strip()]
 
             return result.returncode == 0, warnings
 

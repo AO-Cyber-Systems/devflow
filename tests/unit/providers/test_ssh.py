@@ -4,8 +4,6 @@ import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from devflow.providers.ssh import SSHProvider, SSHResult, SSHTunnel
 
 
@@ -169,6 +167,7 @@ class TestSSHProvider:
             assert Path(key_path).read_text() == key_content
             # Check permissions (0o600)
             import stat
+
             mode = stat.S_IMODE(Path(key_path).stat().st_mode)
             assert mode == 0o600
         finally:

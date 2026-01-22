@@ -3,7 +3,6 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -113,7 +112,9 @@ def status(
     traefik_status = "[green]running[/green]" if infra_status.traefik_running else "[red]stopped[/red]"
     console.print(f"Traefik: {traefik_status}")
     if infra_status.traefik_running and infra_status.traefik_url:
-        console.print(f"  Dashboard: [cyan]{infra_status.traefik_url.replace('https:', 'http:').replace(':443', ':8080')}[/cyan]")
+        console.print(
+            f"  Dashboard: [cyan]{infra_status.traefik_url.replace('https:', 'http:').replace(':443', ':8080')}[/cyan]"
+        )
 
     # Certificates status
     certs_status = "[green]valid[/green]" if infra_status.certificates_valid else "[yellow]not found[/yellow]"
@@ -192,14 +193,18 @@ def configure(
     result = transformer.transform(compose_path, dry_run=dry_run)
 
     if json_output:
-        print(json.dumps({
-            "success": result.success,
-            "message": result.message,
-            "backup_path": result.backup_path,
-            "changes": result.changes,
-            "warnings": result.warnings,
-            "domains": domains,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": result.success,
+                    "message": result.message,
+                    "backup_path": result.backup_path,
+                    "changes": result.changes,
+                    "warnings": result.warnings,
+                    "domains": domains,
+                }
+            )
+        )
         return
 
     if result.success:
@@ -219,7 +224,7 @@ def configure(
             console.print(f"\n[dim]Backup created: {result.backup_path}[/dim]")
 
         if domains:
-            console.print(f"\n[bold]Detected domains:[/bold]")
+            console.print("\n[bold]Detected domains:[/bold]")
             for domain in domains:
                 console.print(f"  • {domain}")
 
@@ -234,7 +239,7 @@ def configure(
                 backup_path=result.backup_path,
             )
             provider.register_project(project)
-            console.print(f"\n[dim]Project registered in devflow infrastructure.[/dim]")
+            console.print("\n[dim]Project registered in devflow infrastructure.[/dim]")
     else:
         console.print(f"[red]✗[/red] {result.message}")
         raise typer.Exit(1)
@@ -285,11 +290,15 @@ def unconfigure(
     success = transformer.restore(compose_path)
 
     if json_output:
-        print(json.dumps({
-            "success": success,
-            "message": "Restored from backup" if success else "Failed to restore",
-            "backup_used": str(backups[0]) if success else None,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": success,
+                    "message": "Restored from backup" if success else "Failed to restore",
+                    "backup_used": str(backups[0]) if success else None,
+                }
+            )
+        )
         return
 
     if success:
@@ -297,9 +306,9 @@ def unconfigure(
 
         # Unregister the project
         provider.unregister_project(str(project_path))
-        console.print(f"[dim]Project unregistered from devflow infrastructure.[/dim]")
+        console.print("[dim]Project unregistered from devflow infrastructure.[/dim]")
     else:
-        console.print(f"[red]✗[/red] Failed to restore from backup")
+        console.print("[red]✗[/red] Failed to restore from backup")
         raise typer.Exit(1)
 
 
@@ -320,6 +329,7 @@ def certs(
 
     # Check mkcert availability
     from devflow.providers.mkcert import MkcertProvider
+
     mkcert = MkcertProvider()
 
     if not mkcert.is_available():
@@ -353,12 +363,16 @@ def certs(
         result = provider.regenerate_certificates()
 
         if json_output:
-            print(json.dumps({
-                "success": result.success,
-                "message": result.message,
-                "ca_installed": ca_installed,
-                "cert_path": str(provider.certs_dir),
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": result.success,
+                        "message": result.message,
+                        "ca_installed": ca_installed,
+                        "cert_path": str(provider.certs_dir),
+                    }
+                )
+            )
             return
 
         if result.success:
@@ -368,12 +382,16 @@ def certs(
             raise typer.Exit(1)
     else:
         if json_output:
-            print(json.dumps({
-                "success": True,
-                "message": "Certificates already exist",
-                "ca_installed": ca_installed,
-                "cert_path": str(provider.certs_dir),
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": True,
+                        "message": "Certificates already exist",
+                        "ca_installed": ca_installed,
+                        "cert_path": str(provider.certs_dir),
+                    }
+                )
+            )
 
 
 @app.command()
@@ -420,11 +438,15 @@ def hosts(
         result = provider.add_hosts_entries(domains)
 
         if json_output:
-            print(json.dumps({
-                "success": result.success,
-                "message": result.message,
-                "details": result.details,
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": result.success,
+                        "message": result.message,
+                        "details": result.details,
+                    }
+                )
+            )
             return
 
         if result.success:
@@ -477,10 +499,14 @@ def network(
         infra_status = provider.status()
 
         if json_output:
-            print(json.dumps({
-                "network_name": infra_status.network_name,
-                "exists": infra_status.network_exists,
-            }))
+            print(
+                json.dumps(
+                    {
+                        "network_name": infra_status.network_name,
+                        "exists": infra_status.network_exists,
+                    }
+                )
+            )
             return
 
         console.print("[bold]Network Status[/bold]\n")

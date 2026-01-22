@@ -5,7 +5,6 @@ import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass
-from typing import Optional
 
 from devflow.providers.base import Provider
 
@@ -67,7 +66,7 @@ class SSHProvider(Provider):
         host: str,
         user: str,
         command: str,
-        key_path: Optional[str] = None,
+        key_path: str | None = None,
         timeout: int = 60,
     ) -> SSHResult:
         """Execute a command on a remote host via SSH.
@@ -137,8 +136,8 @@ class SSHProvider(Provider):
         remote_port: int,
         ssh_host: str,
         ssh_user: str,
-        key_path: Optional[str] = None,
-    ) -> Optional[SSHTunnel]:
+        key_path: str | None = None,
+    ) -> SSHTunnel | None:
         """Create an SSH tunnel.
 
         Args:
@@ -188,7 +187,7 @@ class SSHProvider(Provider):
         self,
         host: str,
         user: str,
-        key_path: Optional[str] = None,
+        key_path: str | None = None,
     ) -> subprocess.Popen:
         """Start an interactive SSH session.
 
@@ -217,7 +216,7 @@ class SSHProvider(Provider):
         remote_path: str,
         host: str,
         user: str,
-        key_path: Optional[str] = None,
+        key_path: str | None = None,
         timeout: int = 120,
     ) -> SSHResult:
         """Copy a file to a remote host using SCP.

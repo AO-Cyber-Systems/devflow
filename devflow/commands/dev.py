@@ -1,7 +1,5 @@
 """Local development commands."""
 
-from typing import Optional
-
 import typer
 from rich.console import Console
 
@@ -118,13 +116,17 @@ def setup(
                 try:
                     resolved_content = op.inject(template_content)
                     env_local.write_text(resolved_content)
-                    steps.append({"name": "env_setup", "status": "ok", "message": "Environment resolved from 1Password"})
+                    steps.append(
+                        {"name": "env_setup", "status": "ok", "message": "Environment resolved from 1Password"}
+                    )
                     if not json_output:
                         console.print("[green]4. Environment[/green] - resolved from 1Password")
                 except Exception as e:
                     # Fall back to copying template as-is
                     env_local.write_text(template_content)
-                    steps.append({"name": "env_setup", "status": "warning", "message": f"Could not resolve secrets: {e}"})
+                    steps.append(
+                        {"name": "env_setup", "status": "warning", "message": f"Could not resolve secrets: {e}"}
+                    )
                     if not json_output:
                         console.print(f"[yellow]4. Environment[/yellow] - copied template (could not resolve: {e})")
             else:
@@ -180,11 +182,15 @@ def setup(
     success = all(s["status"] in ("ok", "skipped", "warning") for s in steps)
 
     if json_output:
-        print(json.dumps({
-            "success": success,
-            "steps": steps,
-            "errors": errors,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": success,
+                    "steps": steps,
+                    "errors": errors,
+                }
+            )
+        )
     else:
         console.print()
         if success:
@@ -200,7 +206,7 @@ def setup(
 
 @app.command()
 def start(
-    service: Optional[str] = typer.Option(None, "--service", "-s", help="Specific service to start"),
+    service: str | None = typer.Option(None, "--service", "-s", help="Specific service to start"),
     detach: bool = typer.Option(True, "--detach/--no-detach", "-d", help="Run in background"),
 ) -> None:
     """Start local development services."""
@@ -221,13 +227,13 @@ def start(
     if service:
         cmd.append(service)
 
-    console.print(f"[bold]Starting services...[/bold]")
+    console.print("[bold]Starting services...[/bold]")
     subprocess.run(cmd)
 
 
 @app.command()
 def stop(
-    service: Optional[str] = typer.Option(None, "--service", "-s", help="Specific service to stop"),
+    service: str | None = typer.Option(None, "--service", "-s", help="Specific service to stop"),
 ) -> None:
     """Stop local development services."""
     import subprocess
@@ -245,7 +251,7 @@ def stop(
     if service:
         cmd.append(service)
 
-    console.print(f"[bold]Stopping services...[/bold]")
+    console.print("[bold]Stopping services...[/bold]")
     subprocess.run(cmd)
 
 

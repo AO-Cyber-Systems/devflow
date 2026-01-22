@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from devflow.core.config import load_project_config
 from devflow.migrations.generator import create_migration, generate_migration_name
 from devflow.migrations.tracker import MigrationTracker

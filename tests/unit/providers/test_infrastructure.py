@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from devflow.core.config import InfrastructureConfig
 from devflow.providers.infrastructure import (
     InfraResult,
@@ -229,18 +227,22 @@ class TestProjectRegistry:
 
         # Create a projects file
         projects_file = tmp_path / "projects.json"
-        projects_file.write_text(json.dumps({
-            "projects": [
+        projects_file.write_text(
+            json.dumps(
                 {
-                    "name": "test-project",
-                    "path": "/path/to/project",
-                    "domains": ["test.localhost"],
-                    "compose_files": ["docker-compose.yml"],
-                    "configured_at": "2024-01-01T00:00:00",
-                    "backup_path": None,
+                    "projects": [
+                        {
+                            "name": "test-project",
+                            "path": "/path/to/project",
+                            "domains": ["test.localhost"],
+                            "compose_files": ["docker-compose.yml"],
+                            "configured_at": "2024-01-01T00:00:00",
+                            "backup_path": None,
+                        }
+                    ]
                 }
-            ]
-        }))
+            )
+        )
 
         projects = provider.get_registered_projects()
         assert len(projects) == 1
@@ -309,10 +311,15 @@ class TestHostsManagement:
         provider = InfrastructureProvider()
 
         # Mock reading hosts file without devflow section
-        with patch("builtins.open", MagicMock(return_value=MagicMock(
-            __enter__=lambda s: MagicMock(readlines=lambda: ["127.0.0.1 localhost\n"]),
-            __exit__=lambda s, *args: None,
-        ))):
+        with patch(
+            "builtins.open",
+            MagicMock(
+                return_value=MagicMock(
+                    __enter__=lambda s: MagicMock(readlines=lambda: ["127.0.0.1 localhost\n"]),
+                    __exit__=lambda s, *args: None,
+                )
+            ),
+        ):
             entries = provider.get_hosts_entries()
 
         assert entries == []
@@ -329,10 +336,15 @@ class TestHostsManagement:
             "# devflow-managed-end\n",
         ]
 
-        with patch("builtins.open", MagicMock(return_value=MagicMock(
-            __enter__=lambda s: MagicMock(readlines=lambda: hosts_content),
-            __exit__=lambda s, *args: None,
-        ))):
+        with patch(
+            "builtins.open",
+            MagicMock(
+                return_value=MagicMock(
+                    __enter__=lambda s: MagicMock(readlines=lambda: hosts_content),
+                    __exit__=lambda s, *args: None,
+                )
+            ),
+        ):
             entries = provider.get_hosts_entries()
 
         assert len(entries) == 2

@@ -1,12 +1,10 @@
 """Infrastructure provider for managing shared development infrastructure."""
 
 import json
-import os
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from devflow.core.config import InfrastructureConfig
 from devflow.providers.docker import DockerProvider
@@ -20,10 +18,10 @@ class InfraStatus:
     network_exists: bool = False
     network_name: str = ""
     traefik_running: bool = False
-    traefik_container_id: Optional[str] = None
-    traefik_url: Optional[str] = None
+    traefik_container_id: str | None = None
+    traefik_url: str | None = None
     certificates_valid: bool = False
-    certificates_path: Optional[str] = None
+    certificates_path: str | None = None
     registered_projects: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -58,7 +56,7 @@ class RegisteredProject:
     domains: list[str]
     compose_files: list[str]
     configured_at: str
-    backup_path: Optional[str] = None
+    backup_path: str | None = None
 
 
 class InfrastructureProvider:
@@ -68,7 +66,7 @@ class InfrastructureProvider:
     TRAEFIK_CONTAINER_NAME = "devflow-traefik"
     PROJECTS_FILE = "projects.json"
 
-    def __init__(self, config: Optional[InfrastructureConfig] = None):
+    def __init__(self, config: InfrastructureConfig | None = None):
         """Initialize the infrastructure provider.
 
         Args:
@@ -374,7 +372,7 @@ class InfrastructureProvider:
         except subprocess.SubprocessError:
             return False
 
-    def _get_traefik_container_id(self) -> Optional[str]:
+    def _get_traefik_container_id(self) -> str | None:
         """Get the Traefik container ID."""
         try:
             result = subprocess.run(
@@ -464,7 +462,7 @@ class InfrastructureProvider:
                 "traefik:v2.11",
             ]
 
-            result = subprocess.run(
+            subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
@@ -573,10 +571,32 @@ TLS_EOF
             key_content = key_file.read_text()
 
             # Write to volume using stdin
-            cert_cmd = ["docker", "run", "--rm", "-i", "-v", "devflow-certs:/certs", "alpine:latest", "sh", "-c", "cat > /certs/cert.pem"]
+            cert_cmd = [
+                "docker",
+                "run",
+                "--rm",
+                "-i",
+                "-v",
+                "devflow-certs:/certs",
+                "alpine:latest",
+                "sh",
+                "-c",
+                "cat > /certs/cert.pem",
+            ]
             subprocess.run(cert_cmd, input=cert_content.encode(), capture_output=True, check=False, timeout=10)
 
-            key_cmd = ["docker", "run", "--rm", "-i", "-v", "devflow-certs:/certs", "alpine:latest", "sh", "-c", "cat > /certs/key.pem"]
+            key_cmd = [
+                "docker",
+                "run",
+                "--rm",
+                "-i",
+                "-v",
+                "devflow-certs:/certs",
+                "alpine:latest",
+                "sh",
+                "-c",
+                "cat > /certs/key.pem",
+            ]
             subprocess.run(key_cmd, input=key_content.encode(), capture_output=True, check=False, timeout=10)
 
     def _write_traefik_templates(self) -> None:

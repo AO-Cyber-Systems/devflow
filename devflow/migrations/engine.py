@@ -1,13 +1,12 @@
 """Migration execution engine."""
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from rich.console import Console
 
 from devflow.core.config import DevflowConfig
-from devflow.core.errors import MigrationError
-from devflow.migrations.executors.base import ExecutionResult, MigrationExecutor
+from devflow.migrations.executors.base import MigrationExecutor
 from devflow.migrations.tracker import MigrationTracker
 
 console = Console()
@@ -33,7 +32,7 @@ class MigrationEngine:
         self.environment = environment
         self.tracker = MigrationTracker(config, environment)
         self.migrations_dir = Path(config.database.migrations.directory)
-        self._executor: Optional[MigrationExecutor] = None
+        self._executor: MigrationExecutor | None = None
 
     def _get_executor(self) -> MigrationExecutor:
         """Get the appropriate migration executor based on configuration.
@@ -52,7 +51,7 @@ class MigrationEngine:
             from devflow.migrations.executors.supabase_cli import SupabaseCLIExecutor
 
             self._executor = SupabaseCLIExecutor(self.config, self.environment)
-            console.print(f"[dim]Using Supabase CLI executor[/dim]")
+            console.print("[dim]Using Supabase CLI executor[/dim]")
         else:
             # Default to SQL executor (supports 'sql' and legacy configs)
             from devflow.migrations.executors.sql import SQLExecutor

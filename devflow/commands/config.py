@@ -1,7 +1,5 @@
 """Configuration management commands."""
 
-from typing import Optional
-
 import typer
 from rich.console import Console
 from rich.syntax import Syntax
@@ -16,8 +14,6 @@ def show(
 ) -> None:
     """Show current configuration."""
     from pathlib import Path
-
-    import yaml
 
     from devflow.core.config import load_project_config
 
@@ -38,7 +34,7 @@ def validate() -> None:
     """Validate current configuration."""
     from pathlib import Path
 
-    from devflow.core.config import load_project_config, validate_config
+    from devflow.core.config import validate_config
 
     config_path = Path.cwd() / "devflow.yml"
     if not config_path.exists():
@@ -58,7 +54,7 @@ def validate() -> None:
 
 @app.command()
 def env(
-    environment: Optional[str] = typer.Argument(None, help="Environment to switch to"),
+    environment: str | None = typer.Argument(None, help="Environment to switch to"),
 ) -> None:
     """Show or switch the current environment."""
     from devflow.core.config import get_current_env, set_current_env
@@ -134,7 +130,7 @@ def set_value(
 
     import yaml
 
-    from devflow.core.config import load_project_config, validate_config
+    from devflow.core.config import validate_config
 
     config_path = Path.cwd() / "devflow.yml"
     if not config_path.exists():
@@ -174,11 +170,15 @@ def set_value(
     errors = validate_config(config_path)
     if errors:
         if json_output:
-            print(json_lib.dumps({
-                "success": False,
-                "error": "Configuration validation failed",
-                "validation_errors": errors,
-            }))
+            print(
+                json_lib.dumps(
+                    {
+                        "success": False,
+                        "error": "Configuration validation failed",
+                        "validation_errors": errors,
+                    }
+                )
+            )
         else:
             console.print("[red]Configuration validation failed:[/red]")
             for error in errors:
@@ -187,12 +187,16 @@ def set_value(
         raise typer.Exit(1)
 
     if json_output:
-        print(json_lib.dumps({
-            "success": True,
-            "key": key,
-            "old_value": old_value,
-            "new_value": parsed_value,
-        }))
+        print(
+            json_lib.dumps(
+                {
+                    "success": True,
+                    "key": key,
+                    "old_value": old_value,
+                    "new_value": parsed_value,
+                }
+            )
+        )
     else:
         console.print(f"[green]Updated:[/green] {key}")
         console.print(f"  Old: {old_value}")

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from devflow.core.config import DevflowConfig
 
@@ -15,7 +15,7 @@ class ExecutionResult:
     success: bool
     applied: int = 0
     skipped: int = 0
-    error: Optional[str] = None
+    error: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -95,7 +95,7 @@ class MigrationExecutor(ABC):
         files = sorted(self.migrations_dir.glob("*.sql"))
         return [f.name for f in files]
 
-    def get_db_url(self) -> Optional[str]:
+    def get_db_url(self) -> str | None:
         """Get database URL for current environment.
 
         Returns:
@@ -103,7 +103,7 @@ class MigrationExecutor(ABC):
         """
         return self.config.get_database_url(self.environment)
 
-    def validate_environment(self) -> tuple[bool, Optional[str]]:
+    def validate_environment(self) -> tuple[bool, str | None]:
         """Validate that the environment is properly configured.
 
         Returns:

@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -12,7 +11,7 @@ app = typer.Typer(no_args_is_help=True)
 console = Console()
 
 
-def _get_repo_name() -> Optional[str]:
+def _get_repo_name() -> str | None:
     """Get the GitHub repository name from git remote."""
     import subprocess
 
@@ -73,12 +72,14 @@ def list_secrets(
         items = op.list_items(vault)
 
         for item in items:
-            secrets_list.append({
-                "name": item.get("title", ""),
-                "id": item.get("id", ""),
-                "category": item.get("category", ""),
-                "vault": vault,
-            })
+            secrets_list.append(
+                {
+                    "name": item.get("title", ""),
+                    "id": item.get("id", ""),
+                    "category": item.get("category", ""),
+                    "vault": vault,
+                }
+            )
 
     elif source == "github":
         gh = GitHubProvider()
@@ -99,10 +100,12 @@ def list_secrets(
 
         secret_names = gh.list_secrets(repo)
         for name in secret_names:
-            secrets_list.append({
-                "name": name,
-                "repo": repo,
-            })
+            secrets_list.append(
+                {
+                    "name": name,
+                    "repo": repo,
+                }
+            )
 
     elif source == "docker":
         docker = DockerProvider()
@@ -115,11 +118,13 @@ def list_secrets(
 
         docker_secrets = docker.list_secrets()
         for secret in docker_secrets:
-            secrets_list.append({
-                "name": secret.get("Name", ""),
-                "id": secret.get("ID", ""),
-                "created": secret.get("CreatedAt", ""),
-            })
+            secrets_list.append(
+                {
+                    "name": secret.get("Name", ""),
+                    "id": secret.get("ID", ""),
+                    "created": secret.get("CreatedAt", ""),
+                }
+            )
 
     else:
         if json_output:
@@ -132,13 +137,17 @@ def list_secrets(
     mappings = {m.name: m for m in config.secrets.mappings}
 
     if json_output:
-        print(json.dumps({
-            "success": True,
-            "environment": env,
-            "source": source,
-            "secrets": secrets_list,
-            "mapped_count": len([s for s in secrets_list if s["name"] in mappings]),
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": True,
+                    "environment": env,
+                    "source": source,
+                    "secrets": secrets_list,
+                    "mapped_count": len([s for s in secrets_list if s["name"] in mappings]),
+                }
+            )
+        )
     else:
         console.print(f"[bold]Secrets for {env}[/bold] (source: {source})\n")
 
@@ -309,13 +318,17 @@ def sync(
         results.append(result)
 
     if json_output:
-        print(json.dumps({
-            "success": failed == 0,
-            "dry_run": dry_run,
-            "synced": synced,
-            "failed": failed,
-            "results": results,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": failed == 0,
+                    "dry_run": dry_run,
+                    "synced": synced,
+                    "failed": failed,
+                    "results": results,
+                }
+            )
+        )
     else:
         table = Table(show_header=True)
         table.add_column("Secret")
@@ -420,13 +433,17 @@ def verify(
         results.append(result)
 
     if json_output:
-        print(json.dumps({
-            "success": out_of_sync == 0,
-            "environment": env,
-            "in_sync": in_sync,
-            "out_of_sync": out_of_sync,
-            "results": results,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": out_of_sync == 0,
+                    "environment": env,
+                    "in_sync": in_sync,
+                    "out_of_sync": out_of_sync,
+                    "results": results,
+                }
+            )
+        )
     else:
         table = Table(show_header=True)
         table.add_column("Secret")
@@ -436,6 +453,7 @@ def verify(
         table.add_column("Status")
 
         for r in results:
+
             def _status_icon(val):
                 if val is None:
                     return "[dim]-[/dim]"
@@ -534,13 +552,17 @@ def export(
     env_content = "\n".join(env_lines) + "\n" if env_lines else ""
 
     if json_output:
-        print(json.dumps({
-            "success": failed == 0,
-            "exported": exported,
-            "failed": failed,
-            "content": env_content if output == "-" else None,
-            "file": output if output != "-" else None,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": failed == 0,
+                    "exported": exported,
+                    "failed": failed,
+                    "content": env_content if output == "-" else None,
+                    "file": output if output != "-" else None,
+                }
+            )
+        )
     elif output == "-":
         # Output to stdout
         console.print(env_content, end="")

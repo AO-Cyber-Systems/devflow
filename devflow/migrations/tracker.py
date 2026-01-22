@@ -1,12 +1,17 @@
 """Migration state tracking."""
 
+from __future__ import annotations
+
 import hashlib
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from devflow.core.config import DevflowConfig
+
+if TYPE_CHECKING:
+    import psycopg2.extensions
 
 
 @dataclass
@@ -21,7 +26,7 @@ class MigrationRecord:
     success: bool
     devflow_version: str
     applied_from: str  # 'cli', 'ci', 'entrypoint'
-    ci_run_id: Optional[str] = None
+    ci_run_id: str | None = None
 
 
 class MigrationTracker:
@@ -96,7 +101,7 @@ class MigrationTracker:
         content = filepath.read_bytes()
         return hashlib.sha256(content).hexdigest()
 
-    def ensure_tracking_table(self, connection: "psycopg2.extensions.connection") -> None:
+    def ensure_tracking_table(self, connection: psycopg2.extensions.connection) -> None:
         """Ensure the migration tracking table exists."""
         ddl = self.TRACKING_TABLE_DDL.format(schema=self.schema, table=self.table)
         cursor = connection.cursor()
@@ -105,13 +110,13 @@ class MigrationTracker:
 
     def record_migration(
         self,
-        connection: "psycopg2.extensions.connection",
+        connection: psycopg2.extensions.connection,
         name: str,
         checksum: str,
         execution_time_ms: int,
         success: bool,
         applied_from: str = "cli",
-        ci_run_id: Optional[str] = None,
+        ci_run_id: str | None = None,
     ) -> None:
         """Record a migration as applied."""
         from devflow import __version__

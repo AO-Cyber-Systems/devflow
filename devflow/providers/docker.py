@@ -3,7 +3,6 @@
 import json
 import shutil
 import subprocess
-from typing import Any, Optional
 
 from devflow.providers.base import Provider
 
@@ -84,7 +83,7 @@ class DockerProvider(Provider):
     # Docker Services (Swarm)
     # -------------------------------------------------------------------------
 
-    def list_services(self, filter_name: Optional[str] = None) -> list[dict]:
+    def list_services(self, filter_name: str | None = None) -> list[dict]:
         """List Docker Swarm services."""
         args = ["service", "ls", "--format", "json"]
         if filter_name:
@@ -100,7 +99,7 @@ class DockerProvider(Provider):
     def service_update(
         self,
         service_name: str,
-        image: Optional[str] = None,
+        image: str | None = None,
         force: bool = False,
         with_registry_auth: bool = True,
     ) -> bool:
@@ -173,7 +172,7 @@ class DockerProvider(Provider):
         self,
         compose_file: str = "docker-compose.yml",
         detach: bool = True,
-        services: Optional[list[str]] = None,
+        services: list[str] | None = None,
     ) -> bool:
         """Start services with docker compose."""
         args = ["compose", "-f", compose_file, "up"]

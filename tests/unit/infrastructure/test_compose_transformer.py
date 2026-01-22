@@ -1,13 +1,11 @@
 """Tests for ComposeTransformer."""
 
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
 import yaml
 
 from devflow.core.config import InfrastructureConfig
-from devflow.infrastructure.compose_transformer import ComposeTransformer, TransformResult
+from devflow.infrastructure.compose_transformer import ComposeTransformer
 
 
 class TestComposeTransformer:

@@ -3,10 +3,7 @@
 import os
 from pathlib import Path
 
-import pytest
-
 from devflow.core.config import (
-    DevflowConfig,
     find_config_file,
     load_project_config,
     validate_config,

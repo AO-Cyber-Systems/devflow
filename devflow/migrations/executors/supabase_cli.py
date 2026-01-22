@@ -1,7 +1,5 @@
 """Supabase CLI executor for migrations."""
 
-from typing import Optional
-
 from rich.console import Console
 
 from devflow.core.config import DevflowConfig
@@ -66,7 +64,7 @@ class SupabaseCLIExecutor(MigrationExecutor):
             result.error = f"Migrations directory not found: {self.migrations_dir}"
             return result
 
-        console.print(f"[dim]Using Supabase CLI for migrations...[/dim]")
+        console.print("[dim]Using Supabase CLI for migrations...[/dim]")
 
         # Apply migrations
         push_result = self.provider.db_push(
@@ -103,7 +101,7 @@ class SupabaseCLIExecutor(MigrationExecutor):
             return []
 
         # Use dry-run to check pending
-        push_result = self.provider.db_push(
+        self.provider.db_push(
             db_url=db_url,
             migrations_dir=str(self.migrations_dir),
             dry_run=True,
@@ -175,7 +173,7 @@ class SupabaseCLIExecutor(MigrationExecutor):
             console.print(f"[yellow]Could not query applied migrations: {e}[/yellow]")
             return []
 
-    def diff(self, migration_name: Optional[str] = None) -> tuple[bool, str]:
+    def diff(self, migration_name: str | None = None) -> tuple[bool, str]:
         """Generate schema diff.
 
         Args:

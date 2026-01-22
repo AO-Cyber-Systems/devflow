@@ -5,11 +5,9 @@ import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
-from devflow.commands.config import app, _parse_value, _get_nested_value, _set_nested_value
-
+from devflow.commands.config import _get_nested_value, _parse_value, _set_nested_value, app
 
 runner = CliRunner()
 
@@ -42,7 +40,7 @@ class TestParseValue:
 
     def test_parse_json_array(self) -> None:
         """Test parsing JSON array."""
-        result = _parse_value('[1, 2, 3]')
+        result = _parse_value("[1, 2, 3]")
         assert result == [1, 2, 3]
 
     def test_parse_json_object(self) -> None:

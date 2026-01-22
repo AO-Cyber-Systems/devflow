@@ -2,7 +2,6 @@
 
 import shutil
 import subprocess
-from typing import Optional
 
 from devflow.providers.base import Provider
 
@@ -36,7 +35,7 @@ class GitHubProvider(Provider):
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             return False
 
-    def get_current_user(self) -> Optional[str]:
+    def get_current_user(self) -> str | None:
         """Get the currently authenticated user."""
         if not self.is_authenticated():
             return None

@@ -2,13 +2,10 @@
 
 import os
 from pathlib import Path
-from typing import Any, Optional
 
 import yaml
 from pydantic import BaseModel, Field
 from rich.console import Console
-
-from devflow.core.errors import ConfigError
 
 console = Console()
 
@@ -16,11 +13,11 @@ console = Console()
 class DatabaseEnvConfig(BaseModel):
     """Database configuration for a specific environment."""
 
-    url_env: Optional[str] = None  # Environment variable name for URL
-    url_secret: Optional[str] = None  # Docker secret name for URL
-    host: Optional[str] = None  # SSH host for remote connections
-    ssh_user: Optional[str] = None
-    direct_port: Optional[int] = None
+    url_env: str | None = None  # Environment variable name for URL
+    url_secret: str | None = None  # Docker secret name for URL
+    host: str | None = None  # SSH host for remote connections
+    ssh_user: str | None = None
+    direct_port: int | None = None
     require_approval: bool = False
 
 
@@ -45,10 +42,10 @@ class SecretMapping(BaseModel):
     """Individual secret mapping."""
 
     name: str
-    op_item: Optional[str] = None
-    op_field: Optional[str] = None
-    github_secret: Optional[str] = None
-    docker_secret: Optional[str] = None
+    op_item: str | None = None
+    op_field: str | None = None
+    github_secret: str | None = None
+    docker_secret: str | None = None
 
 
 class SecretsConfig(BaseModel):
@@ -65,18 +62,18 @@ class ServiceConfig(BaseModel):
     image: str
     stack: str
     replicas: int = 1
-    health_endpoint: Optional[str] = None
+    health_endpoint: str | None = None
 
 
 class DeploymentEnvConfig(BaseModel):
     """Deployment configuration for a specific environment."""
 
-    host: Optional[str] = None
+    host: str | None = None
     ssh_user: str = "deploy"
-    ssh_key_secret: Optional[str] = None
-    auto_deploy_branch: Optional[str] = None
+    ssh_key_secret: str | None = None
+    auto_deploy_branch: str | None = None
     require_approval: bool = False
-    approval_environment: Optional[str] = None
+    approval_environment: str | None = None
 
 
 class DeploymentConfig(BaseModel):
@@ -110,9 +107,7 @@ class TraefikConfig(BaseModel):
 class CertificatesConfig(BaseModel):
     """Certificate configuration for local TLS."""
 
-    domains: list[str] = Field(
-        default_factory=lambda: ["*.localhost", "*.aocodex.localhost", "*.aosentry.localhost"]
-    )
+    domains: list[str] = Field(default_factory=lambda: ["*.localhost", "*.aocodex.localhost", "*.aosentry.localhost"])
     cert_dir: str = "~/.devflow/certs"
 
 
@@ -131,7 +126,7 @@ class ProjectConfig(BaseModel):
     """Project metadata."""
 
     name: str
-    preset: Optional[str] = None
+    preset: str | None = None
 
 
 class DevflowConfig(BaseModel):
@@ -145,7 +140,7 @@ class DevflowConfig(BaseModel):
     development: DevelopmentConfig = Field(default_factory=DevelopmentConfig)
     infrastructure: InfrastructureConfig = Field(default_factory=InfrastructureConfig)
 
-    def get_database_url(self, env: str) -> Optional[str]:
+    def get_database_url(self, env: str) -> str | None:
         """Get database URL for the specified environment."""
         env_config = self.database.environments.get(env)
         if not env_config:
@@ -164,7 +159,7 @@ class DevflowConfig(BaseModel):
         return None
 
 
-def find_config_file() -> Optional[Path]:
+def find_config_file() -> Path | None:
     """Find devflow.yml in current directory or parents."""
     current = Path.cwd()
 
@@ -177,7 +172,7 @@ def find_config_file() -> Optional[Path]:
     return None
 
 
-def load_project_config() -> Optional[DevflowConfig]:
+def load_project_config() -> DevflowConfig | None:
     """Load project configuration from devflow.yml."""
     config_path = find_config_file()
     if not config_path:
@@ -221,7 +216,7 @@ def set_current_env(env: str) -> None:
     os.environ["DEVFLOW_ENV"] = env
 
 
-def initialize_project(preset: Optional[str] = None, force: bool = False) -> None:
+def initialize_project(preset: str | None = None, force: bool = False) -> None:
     """Initialize devflow in the current project."""
     config_path = Path.cwd() / "devflow.yml"
 
@@ -292,7 +287,7 @@ development:
     with open(config_path, "w") as f:
         f.write(config_content)
 
-    console.print(f"[green]Created devflow.yml[/green]")
+    console.print("[green]Created devflow.yml[/green]")
     console.print("\nNext steps:")
     console.print("  1. Edit devflow.yml to match your project")
     console.print("  2. Run 'devflow doctor' to verify your setup")

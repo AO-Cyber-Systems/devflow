@@ -5,11 +5,9 @@ import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
-from devflow.commands.secrets import app, _get_repo_name
-
+from devflow.commands.secrets import _get_repo_name, app
 
 runner = CliRunner()
 

@@ -3,7 +3,6 @@
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class Provider(ABC):
@@ -31,7 +30,7 @@ class Provider(ABC):
         """Check if the tool is authenticated/configured."""
         pass
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         """Get the tool version."""
         if not self.is_available():
             return None
@@ -47,7 +46,7 @@ class Provider(ABC):
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             return None
 
-    def get_path(self) -> Optional[str]:
+    def get_path(self) -> str | None:
         """Get the path to the binary."""
         return shutil.which(self.binary)
 

@@ -3,7 +3,6 @@
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
 
 from devflow.core.config import DevflowConfig, load_project_config
 
@@ -20,11 +19,11 @@ class ExecutionContext:
 
     # Project info
     project_root: Path = field(default_factory=Path.cwd)
-    config: Optional[DevflowConfig] = None
+    config: DevflowConfig | None = None
 
     # Runtime state
     user: str = field(default_factory=lambda: os.environ.get("USER", "unknown"))
-    ci_run_id: Optional[str] = None
+    ci_run_id: str | None = None
 
     @classmethod
     def from_environment(cls) -> "ExecutionContext":
@@ -73,7 +72,7 @@ class ExecutionContext:
             return self.project_root / self.config.database.migrations.directory
         return self.project_root / "supabase" / "migrations"
 
-    def get_database_url(self) -> Optional[str]:
+    def get_database_url(self) -> str | None:
         """Get database URL for current environment."""
         if not self.config:
             return os.environ.get("DATABASE_URL")
@@ -81,7 +80,7 @@ class ExecutionContext:
 
 
 # Global context instance
-_context: Optional[ExecutionContext] = None
+_context: ExecutionContext | None = None
 
 
 def get_context() -> ExecutionContext:

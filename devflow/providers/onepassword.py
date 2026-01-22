@@ -3,7 +3,6 @@
 import json
 import shutil
 import subprocess
-from typing import Any, Optional
 
 from devflow.providers.base import Provider
 
@@ -53,7 +52,7 @@ class OnePasswordProvider(Provider):
         except subprocess.CalledProcessError:
             return []
 
-    def get_item(self, item_name: str, vault: Optional[str] = None) -> Optional[dict]:
+    def get_item(self, item_name: str, vault: str | None = None) -> dict | None:
         """Get an item by name."""
         args = ["item", "get", item_name, "--format", "json"]
         if vault:
@@ -65,7 +64,7 @@ class OnePasswordProvider(Provider):
         except subprocess.CalledProcessError:
             return None
 
-    def read_field(self, item_name: str, field: str, vault: Optional[str] = None) -> Optional[str]:
+    def read_field(self, item_name: str, field: str, vault: str | None = None) -> str | None:
         """Read a specific field from an item."""
         # Use op read for direct field access
         reference = f"op://{vault}/{item_name}/{field}" if vault else f"op://{item_name}/{field}"

@@ -1,7 +1,6 @@
 """SQL executor using psycopg2 with advisory locking."""
 
 import time
-from typing import Optional
 
 from rich.console import Console
 
@@ -199,7 +198,7 @@ class SQLExecutor(MigrationExecutor):
         except Exception:
             return []
 
-    def rollback_migration(self, migration_name: str, rollback_sql: Optional[str] = None) -> ExecutionResult:
+    def rollback_migration(self, migration_name: str, rollback_sql: str | None = None) -> ExecutionResult:
         """Rollback a specific migration.
 
         Note: Rollback requires either:

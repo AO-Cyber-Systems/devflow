@@ -1,8 +1,6 @@
 """Database and migration commands."""
 
 import json
-import sys
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -32,15 +30,19 @@ def status(
     status_data = engine.get_status()
 
     if json_output:
-        print(json.dumps({
-            "success": True,
-            "environment": env,
-            "executor": status_data.get("executor", "sql"),
-            "applied": status_data["applied"],
-            "pending": status_data["pending"],
-            "total": status_data["total"],
-            "pending_files": status_data["pending_files"],
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": True,
+                    "environment": env,
+                    "executor": status_data.get("executor", "sql"),
+                    "applied": status_data["applied"],
+                    "pending": status_data["pending"],
+                    "total": status_data["total"],
+                    "pending_files": status_data["pending_files"],
+                }
+            )
+        )
     else:
         console.print(f"[bold]Migration Status[/bold] ({env})\n")
         console.print(f"  Executor: {status_data.get('executor', 'sql')}")
@@ -92,13 +94,17 @@ def migrate(
         pending = engine.get_pending_migrations()
 
         if json_output:
-            print(json.dumps({
-                "success": True,
-                "dry_run": True,
-                "environment": env,
-                "pending_count": len(pending),
-                "pending_migrations": pending,
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": True,
+                        "dry_run": True,
+                        "environment": env,
+                        "pending_count": len(pending),
+                        "pending_migrations": pending,
+                    }
+                )
+            )
         else:
             console.print(f"[bold]Dry Run - Migrations for {env}[/bold]\n")
             if not pending:
@@ -115,13 +121,17 @@ def migrate(
         result = engine.apply_migrations(ci_mode=ci)
 
         if json_output:
-            print(json.dumps({
-                "success": result["success"],
-                "environment": env,
-                "applied": result["applied"],
-                "skipped": result["skipped"],
-                "error": result["error"],
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": result["success"],
+                        "environment": env,
+                        "applied": result["applied"],
+                        "skipped": result["skipped"],
+                        "error": result["error"],
+                    }
+                )
+            )
         else:
             if result["success"]:
                 console.print(f"[green]Applied {result['applied']} migration(s).[/green]")
@@ -220,7 +230,7 @@ def rollback(
 
         if not down_file.exists():
             result["status"] = "error"
-            result["error"] = f"No .down.sql file found"
+            result["error"] = "No .down.sql file found"
 
             if not json_output:
                 console.print(f"[red]Error:[/red] No rollback file for {migration_name}")
@@ -261,14 +271,18 @@ def rollback(
         results.append(result)
 
     if json_output:
-        print(json.dumps({
-            "success": failed == 0,
-            "environment": env,
-            "dry_run": dry_run,
-            "rolled_back": rolled_back,
-            "failed": failed,
-            "results": results,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": failed == 0,
+                    "environment": env,
+                    "dry_run": dry_run,
+                    "rolled_back": rolled_back,
+                    "failed": failed,
+                    "results": results,
+                }
+            )
+        )
     elif not dry_run:
         console.print(f"\n[dim]Rolled back: {rolled_back}, Failed: {failed}[/dim]")
 

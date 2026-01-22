@@ -1,9 +1,7 @@
 """First-time devflow installation and Claude Code plugin setup."""
 
-import os
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import typer
@@ -132,12 +130,8 @@ def check_prerequisites() -> dict[str, bool]:
 
 @app.command()
 def install(
-    skip_plugin: bool = typer.Option(
-        False, "--skip-plugin", help="Skip Claude Code plugin installation"
-    ),
-    force: bool = typer.Option(
-        False, "--force", "-f", help="Force reinstall even if already installed"
-    ),
+    skip_plugin: bool = typer.Option(False, "--skip-plugin", help="Skip Claude Code plugin installation"),
+    force: bool = typer.Option(False, "--force", "-f", help="Force reinstall even if already installed"),
 ) -> None:
     """
     First-time devflow setup.
@@ -145,11 +139,12 @@ def install(
     Installs the Claude Code plugin and verifies prerequisites.
     Run this once after cloning the devflow repository.
     """
-    console.print(Panel.fit(
-        "[bold blue]Devflow Installation[/bold blue]\n"
-        "Setting up devflow CLI and Claude Code integration",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold blue]Devflow Installation[/bold blue]\n" "Setting up devflow CLI and Claude Code integration",
+            border_style="blue",
+        )
+    )
 
     devflow_root = get_devflow_root()
     console.print(f"\nDevflow root: [dim]{devflow_root}[/dim]")
@@ -241,9 +236,7 @@ def install(
 
 @app.command()
 def uninstall(
-    keep_config: bool = typer.Option(
-        False, "--keep-config", help="Keep configuration files"
-    ),
+    keep_config: bool = typer.Option(False, "--keep-config", help="Keep configuration files"),
 ) -> None:
     """
     Remove devflow Claude Code plugin.
@@ -286,10 +279,12 @@ def status() -> None:
     """Show devflow installation status."""
     devflow_root = get_devflow_root()
 
-    console.print(Panel.fit(
-        "[bold]Devflow Installation Status[/bold]",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]Devflow Installation Status[/bold]",
+            border_style="blue",
+        )
+    )
 
     console.print(f"\n[bold]Installation path:[/bold] {devflow_root}")
 
@@ -297,32 +292,32 @@ def status() -> None:
     claude_installed = is_claude_code_installed()
     plugin_installed = is_plugin_installed() if claude_installed else False
 
-    console.print(f"\n[bold]Claude Code CLI:[/bold] ", end="")
+    console.print("\n[bold]Claude Code CLI:[/bold] ", end="")
     if claude_installed:
         console.print("[green]✓ Installed[/green]")
     else:
         console.print("[red]✗ Not found[/red]")
 
-    console.print(f"[bold]Devflow plugin:[/bold]  ", end="")
+    console.print("[bold]Devflow plugin:[/bold]  ", end="")
     if plugin_installed:
         console.print("[green]✓ Installed[/green]")
     elif not claude_installed:
         console.print("[dim]N/A (Claude Code not installed)[/dim]")
     else:
         console.print("[yellow]○ Not installed[/yellow]")
-        console.print(f"\n  Run: [bold]devflow install[/bold]")
+        console.print("\n  Run: [bold]devflow install[/bold]")
 
     # Check for plugin files
     plugin_json = devflow_root / ".claude-plugin" / "plugin.json"
     skills_dir = devflow_root / "skills"
 
-    console.print(f"\n[bold]Plugin manifest:[/bold] ", end="")
+    console.print("\n[bold]Plugin manifest:[/bold] ", end="")
     if plugin_json.exists():
         console.print(f"[green]✓[/green] {plugin_json}")
     else:
         console.print("[red]✗ Missing[/red]")
 
-    console.print(f"[bold]Skills directory:[/bold] ", end="")
+    console.print("[bold]Skills directory:[/bold] ", end="")
     if skills_dir.exists():
         skill_count = len(list(skills_dir.iterdir()))
         console.print(f"[green]✓[/green] {skill_count} skills")

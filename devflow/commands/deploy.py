@@ -1,10 +1,6 @@
 """Deployment commands."""
 
 import json
-import os
-import sys
-import tempfile
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -30,7 +26,7 @@ def _build_image_tag(config, service_name: str, service_config) -> str:
 @app.command()
 def status(
     env: str = typer.Option("staging", "--env", "-e", help="Environment (staging, production)"),
-    service: Optional[str] = typer.Option(None, "--service", "-s", help="Specific service to check"),
+    service: str | None = typer.Option(None, "--service", "-s", help="Specific service to check"),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ) -> None:
     """Show deployment status for the specified environment."""
@@ -92,12 +88,14 @@ def status(
             if line:
                 try:
                     svc = json.loads(line)
-                    services_status.append({
-                        "name": svc.get("Name", ""),
-                        "mode": svc.get("Mode", ""),
-                        "replicas": svc.get("Replicas", ""),
-                        "image": svc.get("Image", ""),
-                    })
+                    services_status.append(
+                        {
+                            "name": svc.get("Name", ""),
+                            "mode": svc.get("Mode", ""),
+                            "replicas": svc.get("Replicas", ""),
+                            "image": svc.get("Image", ""),
+                        }
+                    )
                 except json.JSONDecodeError:
                     pass
     else:
@@ -112,20 +110,26 @@ def status(
 
         docker_services = docker.list_services(filter_name=service)
         for svc in docker_services:
-            services_status.append({
-                "name": svc.get("Name", ""),
-                "mode": svc.get("Mode", ""),
-                "replicas": svc.get("Replicas", ""),
-                "image": svc.get("Image", ""),
-            })
+            services_status.append(
+                {
+                    "name": svc.get("Name", ""),
+                    "mode": svc.get("Mode", ""),
+                    "replicas": svc.get("Replicas", ""),
+                    "image": svc.get("Image", ""),
+                }
+            )
 
     if json_output:
-        print(json.dumps({
-            "success": True,
-            "environment": env,
-            "host": env_config.host,
-            "services": services_status,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": True,
+                    "environment": env,
+                    "host": env_config.host,
+                    "services": services_status,
+                }
+            )
+        )
     else:
         if not services_status:
             console.print("[yellow]No services found.[/yellow]")
@@ -152,7 +156,7 @@ def status(
 
 @app.command()
 def staging(
-    service: Optional[str] = typer.Option(None, "--service", "-s", help="Specific service to deploy"),
+    service: str | None = typer.Option(None, "--service", "-s", help="Specific service to deploy"),
     migrate: bool = typer.Option(False, "--migrate", "-m", help="Run migrations before deploying"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deployed"),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
@@ -163,7 +167,7 @@ def staging(
 
 @app.command()
 def production(
-    service: Optional[str] = typer.Option(None, "--service", "-s", help="Specific service to deploy"),
+    service: str | None = typer.Option(None, "--service", "-s", help="Specific service to deploy"),
     migrate: bool = typer.Option(False, "--migrate", "-m", help="Run migrations before deploying"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be deployed"),
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
@@ -175,7 +179,7 @@ def production(
 
 def _deploy_to_env(
     env: str,
-    service: Optional[str],
+    service: str | None,
     migrate: bool,
     dry_run: bool,
     json_output: bool,
@@ -216,7 +220,7 @@ def _deploy_to_env(
     # Check for require_approval config
     if env_config.require_approval and not dry_run:
         if not json_output:
-            console.print(f"[yellow]This environment requires approval.[/yellow]")
+            console.print("[yellow]This environment requires approval.[/yellow]")
             console.print("Use GitHub Actions or another CI/CD system for approved deployments.")
         if json_output:
             print(json.dumps({"success": False, "error": "Environment requires approval"}))
@@ -321,7 +325,7 @@ def _deploy_to_env(
             result["image"] = image_tag
             deployed += 1
             if not json_output:
-                console.print(f"  [green]Deployed successfully[/green]")
+                console.print("  [green]Deployed successfully[/green]")
         else:
             result["status"] = "failed"
             result["error"] = error
@@ -332,14 +336,18 @@ def _deploy_to_env(
         results.append(result)
 
     if json_output:
-        print(json.dumps({
-            "success": failed == 0,
-            "environment": env,
-            "dry_run": dry_run,
-            "deployed": deployed,
-            "failed": failed,
-            "results": results,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": failed == 0,
+                    "environment": env,
+                    "dry_run": dry_run,
+                    "deployed": deployed,
+                    "failed": failed,
+                    "results": results,
+                }
+            )
+        )
     elif not dry_run:
         console.print(f"\n[dim]Deployed: {deployed}, Failed: {failed}[/dim]")
 
@@ -347,7 +355,7 @@ def _deploy_to_env(
 @app.command()
 def rollback(
     env: str = typer.Option("staging", "--env", "-e", help="Environment"),
-    service: Optional[str] = typer.Option(None, "--service", "-s", help="Specific service to rollback"),
+    service: str | None = typer.Option(None, "--service", "-s", help="Specific service to rollback"),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ) -> None:
     """Rollback to the previous deployment."""
@@ -440,7 +448,7 @@ def rollback(
             result["status"] = "rolled_back"
             rolled_back += 1
             if not json_output:
-                console.print(f"  [green]Rolled back successfully[/green]")
+                console.print("  [green]Rolled back successfully[/green]")
         else:
             result["status"] = "failed"
             result["error"] = error
@@ -451,13 +459,17 @@ def rollback(
         results.append(result)
 
     if json_output:
-        print(json.dumps({
-            "success": failed == 0,
-            "environment": env,
-            "rolled_back": rolled_back,
-            "failed": failed,
-            "results": results,
-        }))
+        print(
+            json.dumps(
+                {
+                    "success": failed == 0,
+                    "environment": env,
+                    "rolled_back": rolled_back,
+                    "failed": failed,
+                    "results": results,
+                }
+            )
+        )
     else:
         console.print(f"\n[dim]Rolled back: {rolled_back}, Failed: {failed}[/dim]")
 
@@ -521,7 +533,8 @@ def logs(
 
             args = [
                 "ssh",
-                "-o", "StrictHostKeyChecking=accept-new",
+                "-o",
+                "StrictHostKeyChecking=accept-new",
                 f"{env_config.ssh_user}@{env_config.host}",
                 cmd,
             ]
@@ -538,11 +551,15 @@ def logs(
             )
 
             if json_output:
-                print(json.dumps({
-                    "success": result.success,
-                    "logs": result.stdout,
-                    "error": result.stderr if not result.success else None,
-                }))
+                print(
+                    json.dumps(
+                        {
+                            "success": result.success,
+                            "logs": result.stdout,
+                            "error": result.stderr if not result.success else None,
+                        }
+                    )
+                )
             else:
                 if result.success:
                     console.print(result.stdout)

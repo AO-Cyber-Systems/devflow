@@ -1,10 +1,16 @@
 """Distributed locking using PostgreSQL advisory locks."""
 
+from __future__ import annotations
+
 import hashlib
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator, Optional
+from typing import TYPE_CHECKING
 
 from devflow.core.errors import LockError
+
+if TYPE_CHECKING:
+    import psycopg2.extensions
 
 
 def get_lock_id(name: str) -> int:
@@ -17,7 +23,7 @@ def get_lock_id(name: str) -> int:
 class AdvisoryLock:
     """PostgreSQL advisory lock manager."""
 
-    def __init__(self, connection: "psycopg2.extensions.connection", lock_name: str):
+    def __init__(self, connection: psycopg2.extensions.connection, lock_name: str):
         """
         Initialize advisory lock.
 
@@ -92,7 +98,7 @@ class AdvisoryLock:
         result = cursor.fetchone()
         return result and result[0] > 0
 
-    def __enter__(self) -> "AdvisoryLock":
+    def __enter__(self) -> AdvisoryLock:
         """Context manager entry."""
         if not self.acquire():
             raise LockError(f"Could not acquire lock '{self.lock_name}'")
@@ -104,7 +110,9 @@ class AdvisoryLock:
 
 
 @contextmanager
-def migration_lock(connection: "psycopg2.extensions.connection", project_name: str) -> Generator[AdvisoryLock, None, None]:
+def migration_lock(
+    connection: psycopg2.extensions.connection, project_name: str
+) -> Generator[AdvisoryLock, None, None]:
     """
     Context manager for migration locking.
 
@@ -119,8 +127,7 @@ def migration_lock(connection: "psycopg2.extensions.connection", project_name: s
     try:
         if not lock.acquire(timeout_seconds=60):
             raise LockError(
-                f"Could not acquire migration lock for {project_name}. "
-                "Another migration may be running."
+                f"Could not acquire migration lock for {project_name}. " "Another migration may be running."
             )
         yield lock
     finally:

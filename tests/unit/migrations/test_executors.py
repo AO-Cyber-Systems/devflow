@@ -1,14 +1,13 @@
 """Tests for migration executors."""
 
 import os
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from devflow.core.config import DevflowConfig, load_project_config
-from devflow.migrations.executors.base import ExecutionResult, MigrationExecutor
+from devflow.migrations.executors.base import ExecutionResult
 from devflow.migrations.executors.sql import SQLExecutor
 from devflow.migrations.executors.supabase_cli import SupabaseCLIExecutor
 
@@ -84,12 +83,8 @@ database:
         migrations_dir.mkdir(parents=True)
 
         # Create test migration files
-        (migrations_dir / "20240101000000_initial.sql").write_text(
-            "CREATE TABLE users (id SERIAL PRIMARY KEY);"
-        )
-        (migrations_dir / "20240102000000_add_email.sql").write_text(
-            "ALTER TABLE users ADD COLUMN email TEXT;"
-        )
+        (migrations_dir / "20240101000000_initial.sql").write_text("CREATE TABLE users (id SERIAL PRIMARY KEY);")
+        (migrations_dir / "20240102000000_add_email.sql").write_text("ALTER TABLE users ADD COLUMN email TEXT;")
 
         original_dir = os.getcwd()
         os.chdir(tmp_path)
@@ -133,9 +128,7 @@ database:
         assert "database url" in result.error.lower()
 
     @patch("psycopg2.connect")
-    def test_apply_psycopg2_not_installed(
-        self, mock_connect: MagicMock, mock_config: DevflowConfig
-    ) -> None:
+    def test_apply_psycopg2_not_installed(self, mock_connect: MagicMock, mock_config: DevflowConfig) -> None:
         """Test apply when psycopg2 is not installed."""
         mock_connect.side_effect = ImportError("No module named 'psycopg2'")
 
@@ -180,9 +173,7 @@ database:
         migrations_dir.mkdir(parents=True)
 
         # Create test migration files
-        (migrations_dir / "20240101000000_initial.sql").write_text(
-            "CREATE TABLE users (id SERIAL PRIMARY KEY);"
-        )
+        (migrations_dir / "20240101000000_initial.sql").write_text("CREATE TABLE users (id SERIAL PRIMARY KEY);")
 
         original_dir = os.getcwd()
         os.chdir(tmp_path)
@@ -226,9 +217,7 @@ database:
         assert "database url" in result.error.lower()
 
     @patch("devflow.providers.supabase.SupabaseProvider.db_push")
-    def test_apply_success(
-        self, mock_db_push: MagicMock, mock_config: DevflowConfig
-    ) -> None:
+    def test_apply_success(self, mock_db_push: MagicMock, mock_config: DevflowConfig) -> None:
         """Test successful migration application."""
         from devflow.providers.supabase import MigrationResult
 
@@ -248,9 +237,7 @@ database:
         assert result.applied == 1
 
     @patch("devflow.providers.supabase.SupabaseProvider.db_push")
-    def test_apply_failure(
-        self, mock_db_push: MagicMock, mock_config: DevflowConfig
-    ) -> None:
+    def test_apply_failure(self, mock_db_push: MagicMock, mock_config: DevflowConfig) -> None:
         """Test failed migration application."""
         from devflow.providers.supabase import MigrationResult
 
@@ -312,6 +299,7 @@ database:
         migrations_dir.mkdir(parents=True, exist_ok=True)
 
         from devflow.core.config import load_project_config
+
         prod_config = load_project_config()
 
         executor = SupabaseCLIExecutor(prod_config, "production")

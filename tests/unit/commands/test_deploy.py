@@ -5,11 +5,9 @@ import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
-from devflow.commands.deploy import app, _get_env_config, _build_image_tag
-
+from devflow.commands.deploy import _build_image_tag, _get_env_config, app
 
 runner = CliRunner()
 

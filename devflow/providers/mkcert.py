@@ -4,7 +4,6 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 from devflow.providers.base import Provider
 
@@ -113,7 +112,7 @@ class MkcertProvider(Provider):
         except subprocess.SubprocessError as e:
             return False, f"Failed to generate certificates: {e}"
 
-    def get_ca_root(self) -> Optional[str]:
+    def get_ca_root(self) -> str | None:
         """Get the path to the mkcert CA root directory.
 
         Returns:
@@ -130,7 +129,7 @@ class MkcertProvider(Provider):
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             return None
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         """Get the mkcert version."""
         if not self.is_available():
             return None

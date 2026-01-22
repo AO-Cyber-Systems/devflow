@@ -5,7 +5,6 @@ import shutil
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
 
 import yaml
 
@@ -18,7 +17,7 @@ class ValidationError:
 
     file: str
     message: str
-    line: Optional[int] = None
+    line: int | None = None
     severity: str = "error"  # error, warning
 
 
@@ -28,7 +27,7 @@ class TransformResult:
 
     success: bool
     message: str
-    backup_path: Optional[str] = None
+    backup_path: str | None = None
     changes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     errors: list[ValidationError] = field(default_factory=list)
@@ -50,7 +49,7 @@ class ComposeTransformer:
         r"traefik/traefik:.*",
     ]
 
-    def __init__(self, config: Optional[InfrastructureConfig] = None):
+    def __init__(self, config: InfrastructureConfig | None = None):
         """Initialize the transformer.
 
         Args:
@@ -103,9 +102,7 @@ class ComposeTransformer:
         changes.extend(network_changes)
 
         # Transform services section
-        compose_data, service_changes, service_warnings = self._transform_services(
-            compose_data, original_networks
-        )
+        compose_data, service_changes, service_warnings = self._transform_services(compose_data, original_networks)
         changes.extend(service_changes)
         warnings.extend(service_warnings)
 
@@ -220,30 +217,36 @@ class ComposeTransformer:
         errors = []
 
         if not compose_path.exists():
-            errors.append(ValidationError(
-                file=str(compose_path),
-                message="File does not exist",
-            ))
+            errors.append(
+                ValidationError(
+                    file=str(compose_path),
+                    message="File does not exist",
+                )
+            )
             return errors
 
         try:
             with open(compose_path) as f:
                 compose_data = yaml.safe_load(f)
         except yaml.YAMLError as e:
-            errors.append(ValidationError(
-                file=str(compose_path),
-                message=f"Invalid YAML: {e}",
-            ))
+            errors.append(
+                ValidationError(
+                    file=str(compose_path),
+                    message=f"Invalid YAML: {e}",
+                )
+            )
             return errors
 
         # Check networks section
         networks = compose_data.get("networks", {})
         if self.config.network_name not in networks:
-            errors.append(ValidationError(
-                file=str(compose_path),
-                message=f"Missing network '{self.config.network_name}'",
-                severity="warning",
-            ))
+            errors.append(
+                ValidationError(
+                    file=str(compose_path),
+                    message=f"Missing network '{self.config.network_name}'",
+                    severity="warning",
+                )
+            )
 
         # Check services use the correct network
         services = compose_data.get("services", {})
@@ -256,11 +259,13 @@ class ComposeTransformer:
                 # Check if any legacy network is used
                 for net in service_networks:
                     if net in self.config.legacy_networks and net != self.config.network_name:
-                        errors.append(ValidationError(
-                            file=str(compose_path),
-                            message=f"Service '{service_name}' uses legacy network '{net}'",
-                            severity="warning",
-                        ))
+                        errors.append(
+                            ValidationError(
+                                file=str(compose_path),
+                                message=f"Service '{service_name}' uses legacy network '{net}'",
+                                severity="warning",
+                            )
+                        )
 
         return errors
 
@@ -329,9 +334,7 @@ class ComposeTransformer:
         compose_data["networks"] = networks
         return compose_data, changes
 
-    def _transform_services(
-        self, compose_data: dict, original_networks: set[str]
-    ) -> tuple[dict, list[str], list[str]]:
+    def _transform_services(self, compose_data: dict, original_networks: set[str]) -> tuple[dict, list[str], list[str]]:
         """Transform service network references.
 
         Args:
@@ -368,9 +371,7 @@ class ComposeTransformer:
                 if modified:
                     # Remove duplicates while preserving order
                     seen = set()
-                    service_config["networks"] = [
-                        n for n in new_networks if not (n in seen or seen.add(n))
-                    ]
+                    service_config["networks"] = [n for n in new_networks if not (n in seen or seen.add(n))]
                     changes.append(f"Updated networks for service '{service_name}'")
 
             elif isinstance(service_networks, dict):
@@ -393,7 +394,7 @@ class ComposeTransformer:
         compose_data["services"] = services
         return compose_data, changes, warnings
 
-    def _find_traefik_service(self, compose_data: dict) -> Optional[str]:
+    def _find_traefik_service(self, compose_data: dict) -> str | None:
         """Find an embedded Traefik service in the compose file.
 
         Args:
@@ -415,9 +416,7 @@ class ComposeTransformer:
 
         return None
 
-    def _remove_traefik_service(
-        self, compose_data: dict, service_name: str
-    ) -> tuple[dict, list[str]]:
+    def _remove_traefik_service(self, compose_data: dict, service_name: str) -> tuple[dict, list[str]]:
         """Remove an embedded Traefik service.
 
         Args:
