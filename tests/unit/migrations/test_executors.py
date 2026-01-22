@@ -210,8 +210,9 @@ database:
         """Test apply with no database URL configured."""
         executor = SupabaseCLIExecutor(mock_config, "local")
 
-        with patch.dict(os.environ, {}, clear=True):
-            result = executor.apply()
+        with patch.object(executor.provider, "is_available", return_value=True):
+            with patch.dict(os.environ, {}, clear=True):
+                result = executor.apply()
 
         assert result.success is False
         assert "database url" in result.error.lower()
