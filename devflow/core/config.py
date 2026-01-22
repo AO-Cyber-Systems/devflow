@@ -10,6 +10,106 @@ from rich.console import Console
 console = Console()
 
 
+DEVFLOW_HOME = Path.home() / ".devflow"
+GLOBAL_CONFIG_PATH = DEVFLOW_HOME / "config.yml"
+
+
+# =============================================================================
+# Global Configuration (user-wide settings)
+# =============================================================================
+
+
+class GlobalGitConfig(BaseModel):
+    """Global git configuration."""
+
+    user_name: str | None = None
+    user_email: str | None = None
+    co_author_enabled: bool = True
+    co_author_name: str = "Claude"
+    co_author_email: str = "noreply@anthropic.com"
+
+
+class GlobalDefaultsConfig(BaseModel):
+    """Default values for new projects."""
+
+    secrets_provider: str | None = None  # 1password, env, or None
+    network_name: str = "devflow-proxy"
+    registry: str | None = None  # Default container registry
+
+
+class GlobalInfrastructureConfig(BaseModel):
+    """Global infrastructure preferences."""
+
+    auto_start: bool = False  # Auto-start Traefik when running devflow commands
+    traefik_http_port: int = 80
+    traefik_https_port: int = 443
+    traefik_dashboard_port: int = 8088
+
+
+class GlobalConfig(BaseModel):
+    """User-wide devflow configuration stored in ~/.devflow/config.yml."""
+
+    version: str = "1"
+    git: GlobalGitConfig = Field(default_factory=GlobalGitConfig)
+    defaults: GlobalDefaultsConfig = Field(default_factory=GlobalDefaultsConfig)
+    infrastructure: GlobalInfrastructureConfig = Field(default_factory=GlobalInfrastructureConfig)
+    setup_completed: bool = False  # Track if initial setup wizard was run
+
+
+def get_global_config_path() -> Path:
+    """Get the path to the global config file."""
+    return GLOBAL_CONFIG_PATH
+
+
+def load_global_config() -> GlobalConfig:
+    """Load global configuration from ~/.devflow/config.yml.
+
+    Returns default config if file doesn't exist.
+    """
+    config_path = get_global_config_path()
+    if not config_path.exists():
+        return GlobalConfig()
+
+    try:
+        with open(config_path) as f:
+            raw_config = yaml.safe_load(f)
+        if raw_config is None:
+            return GlobalConfig()
+        return GlobalConfig(**raw_config)
+    except (yaml.YAMLError, Exception):
+        return GlobalConfig()
+
+
+def save_global_config(config: GlobalConfig) -> bool:
+    """Save global configuration to ~/.devflow/config.yml.
+
+    Returns True on success, False on failure.
+    """
+    config_path = get_global_config_path()
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        with open(config_path, "w") as f:
+            yaml.dump(config.model_dump(), f, default_flow_style=False, sort_keys=False)
+        return True
+    except OSError:
+        return False
+
+
+def is_devflow_initialized() -> bool:
+    """Check if devflow has been initialized globally."""
+    config_path = get_global_config_path()
+    if not config_path.exists():
+        return False
+    config = load_global_config()
+    return config.setup_completed
+
+
+# =============================================================================
+# Project Configuration (per-project settings)
+# =============================================================================
+
+
 class DatabaseEnvConfig(BaseModel):
     """Database configuration for a specific environment."""
 
@@ -24,7 +124,7 @@ class DatabaseEnvConfig(BaseModel):
 class MigrationsConfig(BaseModel):
     """Migration settings."""
 
-    directory: str = "supabase/migrations"
+    directory: str = "migrations"
     format: str = "sql"  # sql, supabase, prisma, alembic
     tracking_table: str = "schema_migrations"
     tracking_schema: str = "public"
@@ -38,6 +138,28 @@ class DatabaseConfig(BaseModel):
     environments: dict[str, DatabaseEnvConfig] = Field(default_factory=dict)
 
 
+class GitUserConfig(BaseModel):
+    """Git user configuration."""
+
+    name: str | None = None
+    email: str | None = None
+
+
+class GitCoAuthorConfig(BaseModel):
+    """Git co-author configuration for AI commits."""
+
+    enabled: bool = True
+    name: str = "Claude"
+    email: str = "noreply@anthropic.com"
+
+
+class GitConfig(BaseModel):
+    """Git configuration."""
+
+    user: GitUserConfig = Field(default_factory=GitUserConfig)
+    co_author: GitCoAuthorConfig = Field(default_factory=GitCoAuthorConfig)
+
+
 class SecretMapping(BaseModel):
     """Individual secret mapping."""
 
@@ -48,11 +170,34 @@ class SecretMapping(BaseModel):
     docker_secret: str | None = None
 
 
+class GitHubAppConfig(BaseModel):
+    """GitHub App authentication configuration.
+
+    Supports op:// references for 1Password integration.
+    Example:
+        app_id: op://AOCyber-Infrastructure/GitHub-App/app_id
+        installation_id: op://AOCyber-Infrastructure/GitHub-App/installation_id
+        private_key: op://AOCyber-Infrastructure/GitHub-App/private_key
+    """
+
+    app_id: str  # GitHub App ID (can be op:// reference)
+    installation_id: str  # Installation ID for the org (can be op:// reference)
+    private_key: str  # PEM-encoded private key (can be op:// reference)
+
+
+class GitHubConfig(BaseModel):
+    """GitHub configuration."""
+
+    auth: str = "cli"  # "cli" (default, uses gh CLI) or "app" (GitHub App)
+    app: GitHubAppConfig | None = None  # Required if auth == "app"
+
+
 class SecretsConfig(BaseModel):
     """Secrets configuration."""
 
-    provider: str = "1password"
-    vault: str = "AOCyber"
+    provider: str | None = None  # 1password, env, or None (disabled)
+    vault: str | None = None  # For 1password provider
+    github: GitHubConfig | None = None  # GitHub-specific configuration
     mappings: list[SecretMapping] = Field(default_factory=list)
 
 
@@ -79,8 +224,8 @@ class DeploymentEnvConfig(BaseModel):
 class DeploymentConfig(BaseModel):
     """Deployment configuration."""
 
-    registry: str = "ghcr.io"
-    organization: str = "ao-cyber-systems"
+    registry: str | None = None  # e.g., ghcr.io, docker.io, etc.
+    organization: str | None = None  # Registry organization/namespace
     services: dict[str, ServiceConfig] = Field(default_factory=dict)
     environments: dict[str, DeploymentEnvConfig] = Field(default_factory=dict)
 
@@ -107,17 +252,17 @@ class TraefikConfig(BaseModel):
 class CertificatesConfig(BaseModel):
     """Certificate configuration for local TLS."""
 
-    domains: list[str] = Field(default_factory=lambda: ["*.localhost", "*.aocodex.localhost", "*.aosentry.localhost"])
+    domains: list[str] = Field(default_factory=lambda: ["*.localhost"])
     cert_dir: str = "~/.devflow/certs"
 
 
 class InfrastructureConfig(BaseModel):
     """Shared infrastructure configuration for local development."""
 
-    enabled: bool = True
+    enabled: bool = False  # Disabled by default - user opts in
     network_name: str = "devflow-proxy"
     # Legacy network names to replace during compose transformation
-    legacy_networks: list[str] = Field(default_factory=lambda: ["proxy", "aosentry-proxy"])
+    legacy_networks: list[str] = Field(default_factory=list)
     traefik: TraefikConfig = Field(default_factory=TraefikConfig)
     certificates: CertificatesConfig = Field(default_factory=CertificatesConfig)
 
@@ -135,10 +280,11 @@ class DevflowConfig(BaseModel):
     version: str = "1"
     project: ProjectConfig
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
-    secrets: SecretsConfig = Field(default_factory=SecretsConfig)
+    secrets: SecretsConfig | None = None  # Optional - only if using secrets management
     deployment: DeploymentConfig = Field(default_factory=DeploymentConfig)
     development: DevelopmentConfig = Field(default_factory=DevelopmentConfig)
     infrastructure: InfrastructureConfig = Field(default_factory=InfrastructureConfig)
+    git: GitConfig = Field(default_factory=GitConfig)
 
     def get_database_url(self, env: str) -> str | None:
         """Get database URL for the specified environment."""
@@ -239,49 +385,48 @@ def initialize_project(preset: str | None = None, force: bool = False) -> None:
             preset = None
 
     if not preset:
-        # Create default configuration
+        # Create minimal default configuration
         config_content = f"""# Devflow Configuration
+# Documentation: https://github.com/ao-cyber-systems/devflow
 version: "1"
 
 project:
   name: {project_name}
 
+# Database configuration (optional)
 database:
   migrations:
-    directory: supabase/migrations
-    format: sql
-    tracking_table: schema_migrations
+    directory: migrations
+    format: sql  # sql, supabase, prisma, alembic
 
   environments:
     local:
       url_env: DATABASE_URL
-    staging:
-      url_secret: {project_name}_database_url
-      host: ao-staging-manager
-      ssh_user: deploy
-    production:
-      url_secret: {project_name}_database_url
-      require_approval: true
 
-secrets:
-  provider: 1password
-  vault: AOCyber
-  mappings: []
-
-deployment:
-  registry: ghcr.io
-  organization: ao-cyber-systems
-  services: {{}}
-  environments:
-    staging:
-      host: ao-staging-manager
-      ssh_user: deploy
-    production:
-      require_approval: true
-
+# Local development
 development:
   compose_file: docker-compose.yml
-  services: []
+
+# Uncomment to enable shared infrastructure (Traefik proxy)
+# infrastructure:
+#   enabled: true
+
+# Uncomment to configure secrets management
+# secrets:
+#   provider: 1password  # or: env
+#   vault: MyVault
+#   mappings: []
+
+# Uncomment to configure deployment
+# deployment:
+#   registry: ghcr.io
+#   organization: my-org
+#   services: {{}}
+#   environments:
+#     staging:
+#       host: staging.example.com
+#     production:
+#       require_approval: true
 """
 
     with open(config_path, "w") as f:

@@ -1,9 +1,13 @@
 """Tests for provider implementations."""
 
+import time
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+from devflow.core.config import GitHubAppConfig
 from devflow.providers.docker import DockerProvider
-from devflow.providers.github import GitHubProvider
+from devflow.providers.github import GitHubAppProvider, GitHubProvider, resolve_github_app_config
 from devflow.providers.onepassword import OnePasswordProvider
 from devflow.providers.supabase import SupabaseProvider
 
@@ -212,3 +216,326 @@ class TestSupabaseProvider:
         assert "authenticated" in status
         assert status["name"] == "supabase"
         assert status["binary"] == "supabase"
+
+
+class TestGitHubAppProvider:
+    """Tests for GitHub App authentication provider."""
+
+    # Sample RSA private key for testing (DO NOT USE IN PRODUCTION)
+    TEST_PRIVATE_KEY = """-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEA2mKqH0dSqmPRjlZxDXQusmVjAAr2y8jMQKMvVHGFDg6VJl9v
+qSJHw2mfvmKJO8oB5L3u/9a3x4AXQ5z5yXW5yT5S3gLi5nnc7AAMk4mXP5szHU0I
+kGPB0tC9Lur6eOBz+5F0QSMfX0Nz8yz0ZV8sVxYQ8L0EAj0L5h0X8M0v0M0G3a0X
+Y5c7a0M0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0
+a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0
+a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0awIDAQABAoIBAFPY8q8m3Qw3M3NWVU8X
+a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0
+a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0
+a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0
+a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0E=
+-----END RSA PRIVATE KEY-----"""
+
+    def test_name(self) -> None:
+        """Test provider name."""
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+        assert provider.name == "github-app"
+
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_get_installation_token_success(self, mock_jwt_encode: MagicMock, mock_post: MagicMock) -> None:
+        """Test successful installation token retrieval."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=201,
+            json=lambda: {
+                "token": "ghs_test_token",
+                "expires_at": "2026-01-22T12:00:00Z",
+            },
+        )
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+        token = provider._get_installation_token()
+
+        assert token == "ghs_test_token"
+        mock_post.assert_called_once()
+
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_get_installation_token_failure(self, mock_jwt_encode: MagicMock, mock_post: MagicMock) -> None:
+        """Test failed installation token retrieval."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=401,
+            text="Bad credentials",
+        )
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+
+        with pytest.raises(RuntimeError, match="Failed to get installation token"):
+            provider._get_installation_token()
+
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_is_authenticated_success(self, mock_jwt_encode: MagicMock, mock_post: MagicMock) -> None:
+        """Test successful authentication check."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=201,
+            json=lambda: {
+                "token": "ghs_test_token",
+                "expires_at": "2026-01-22T12:00:00Z",
+            },
+        )
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+        assert provider.is_authenticated() is True
+
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_is_authenticated_failure(self, mock_jwt_encode: MagicMock, mock_post: MagicMock) -> None:
+        """Test failed authentication check."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=401,
+            text="Bad credentials",
+        )
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+        assert provider.is_authenticated() is False
+
+    @patch("devflow.providers.github.requests.get")
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_list_secrets_success(
+        self, mock_jwt_encode: MagicMock, mock_post: MagicMock, mock_get: MagicMock
+    ) -> None:
+        """Test successful secrets listing."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=201,
+            json=lambda: {
+                "token": "ghs_test_token",
+                "expires_at": "2026-01-22T12:00:00Z",
+            },
+        )
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {
+                "total_count": 2,
+                "secrets": [
+                    {"name": "DATABASE_URL", "created_at": "2025-01-01T00:00:00Z"},
+                    {"name": "API_KEY", "created_at": "2025-01-01T00:00:00Z"},
+                ],
+            },
+        )
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+        secrets = provider.list_secrets("owner/repo")
+
+        assert secrets == ["DATABASE_URL", "API_KEY"]
+
+    @patch("devflow.providers.github.requests.get")
+    @patch("devflow.providers.github.requests.put")
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_set_secret_success(
+        self,
+        mock_jwt_encode: MagicMock,
+        mock_post: MagicMock,
+        mock_put: MagicMock,
+        mock_get: MagicMock,
+    ) -> None:
+        """Test successful secret setting."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=201,
+            json=lambda: {
+                "token": "ghs_test_token",
+                "expires_at": "2026-01-22T12:00:00Z",
+            },
+        )
+        # Mock public key response
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {
+                "key_id": "test_key_id",
+                "key": "hBT5WZEj8gF3P8A2tGr8oPrQ6HdM0ZsyZ5xz1j5nWwI=",
+            },
+        )
+        mock_put.return_value = MagicMock(status_code=201)
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+
+        with patch.object(provider, "_encrypt_secret", return_value="encrypted_value"):
+            result = provider.set_secret("owner/repo", "TEST_SECRET", "secret_value")
+
+        assert result is True
+        mock_put.assert_called_once()
+
+    @patch("devflow.providers.github.requests.delete")
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_delete_secret_success(
+        self, mock_jwt_encode: MagicMock, mock_post: MagicMock, mock_delete: MagicMock
+    ) -> None:
+        """Test successful secret deletion."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        mock_post.return_value = MagicMock(
+            status_code=201,
+            json=lambda: {
+                "token": "ghs_test_token",
+                "expires_at": "2026-01-22T12:00:00Z",
+            },
+        )
+        mock_delete.return_value = MagicMock(status_code=204)
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+        result = provider.delete_secret("owner/repo", "TEST_SECRET")
+
+        assert result is True
+        mock_delete.assert_called_once()
+
+    @patch("devflow.providers.github.requests.post")
+    @patch("devflow.providers.github.jwt.encode")
+    def test_token_caching(self, mock_jwt_encode: MagicMock, mock_post: MagicMock) -> None:
+        """Test that installation tokens are cached and reused."""
+        mock_jwt_encode.return_value = "mock_jwt_token"
+        # Set expiration far in the future
+        future_time = time.time() + 3600
+        mock_post.return_value = MagicMock(
+            status_code=201,
+            json=lambda: {
+                "token": "ghs_test_token",
+                "expires_at": "2026-12-31T23:59:59Z",
+            },
+        )
+
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key=self.TEST_PRIVATE_KEY,
+        )
+        provider = GitHubAppProvider(config)
+
+        # First call should fetch the token
+        token1 = provider._get_installation_token()
+        # Second call should use cached token
+        token2 = provider._get_installation_token()
+
+        assert token1 == token2
+        # POST should only be called once (for the first token fetch)
+        assert mock_post.call_count == 1
+
+
+class TestResolveGitHubAppConfig:
+    """Tests for GitHub App config resolution with 1Password references."""
+
+    def test_resolve_non_op_values(self) -> None:
+        """Test that non-op:// values are passed through unchanged."""
+        config = GitHubAppConfig(
+            app_id="12345",
+            installation_id="67890",
+            private_key="raw_private_key",
+        )
+        resolved = resolve_github_app_config(config)
+
+        assert resolved.app_id == "12345"
+        assert resolved.installation_id == "67890"
+        assert resolved.private_key == "raw_private_key"
+
+    @patch("devflow.providers.onepassword.OnePasswordProvider")
+    def test_resolve_op_references(self, mock_op_class: MagicMock) -> None:
+        """Test that op:// references are resolved via 1Password."""
+        mock_op = MagicMock()
+        mock_op.is_authenticated.return_value = True
+        mock_op.inject.side_effect = lambda x: {
+            "op://vault/item/app_id": "resolved_app_id",
+            "op://vault/item/installation_id": "resolved_installation_id",
+            "op://vault/item/private_key": "resolved_private_key",
+        }.get(x, x)
+        mock_op_class.return_value = mock_op
+
+        config = GitHubAppConfig(
+            app_id="op://vault/item/app_id",
+            installation_id="op://vault/item/installation_id",
+            private_key="op://vault/item/private_key",
+        )
+        resolved = resolve_github_app_config(config)
+
+        assert resolved.app_id == "resolved_app_id"
+        assert resolved.installation_id == "resolved_installation_id"
+        assert resolved.private_key == "resolved_private_key"
+
+    @patch("devflow.providers.onepassword.OnePasswordProvider")
+    def test_resolve_op_not_authenticated(self, mock_op_class: MagicMock) -> None:
+        """Test that error is raised when 1Password is not authenticated."""
+        mock_op = MagicMock()
+        mock_op.is_authenticated.return_value = False
+        mock_op_class.return_value = mock_op
+
+        config = GitHubAppConfig(
+            app_id="op://vault/item/app_id",
+            installation_id="67890",
+            private_key="raw_key",
+        )
+
+        with pytest.raises(ValueError, match="1Password not authenticated"):
+            resolve_github_app_config(config)
+
+    @patch("devflow.providers.onepassword.OnePasswordProvider")
+    def test_resolve_op_injection_failure(self, mock_op_class: MagicMock) -> None:
+        """Test that error is raised when 1Password injection fails."""
+        mock_op = MagicMock()
+        mock_op.is_authenticated.return_value = True
+        # Return the same value (injection failed)
+        mock_op.inject.side_effect = lambda x: x
+        mock_op_class.return_value = mock_op
+
+        config = GitHubAppConfig(
+            app_id="op://vault/item/app_id",
+            installation_id="67890",
+            private_key="raw_key",
+        )
+
+        with pytest.raises(ValueError, match="Failed to read from 1Password"):
+            resolve_github_app_config(config)

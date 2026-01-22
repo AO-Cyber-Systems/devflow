@@ -53,9 +53,21 @@ devflow doctor [OPTIONS]
 | `--fix` | Attempt to fix issues automatically |
 
 **Output:**
-- Tool installation status
-- Authentication status
-- Configuration file locations
+- Tool installation status (gh, op, docker, supabase, psql, git)
+- Authentication status for each tool
+- Global setup status (whether `devflow install` has been run)
+- Global config location and settings (git name/email)
+- Project config location (devflow.yml)
+
+**Example output:**
+```
+Configuration Status
+  Global setup: Completed
+  Global config: /home/user/.devflow/config.yml
+    Git name: Your Name
+    Git email: your@email.com
+  Project config: /path/to/project/devflow.yml
+```
 
 ---
 
@@ -71,7 +83,7 @@ devflow version
 
 ### `devflow install`
 
-First-time devflow setup including Claude Code plugin.
+First-time devflow setup wizard. Configures global settings, git, and shared infrastructure.
 
 ```bash
 devflow install [OPTIONS]
@@ -80,7 +92,26 @@ devflow install [OPTIONS]
 | Option | Description |
 |--------|-------------|
 | `--skip-plugin` | Skip Claude Code plugin installation |
-| `--force`, `-f` | Force reinstall |
+| `--skip-git` | Skip git configuration |
+| `--skip-infra` | Skip infrastructure setup |
+| `--non-interactive`, `-y` | Use defaults without prompts |
+| `--force`, `-f` | Re-run setup (overwrites existing config) |
+
+**Setup steps:**
+1. Create `~/.devflow/` directory structure
+2. Configure git user name and email
+3. Set default secrets provider and container registry
+4. Create Docker network for shared infrastructure
+5. Generate local HTTPS certificates (if mkcert available)
+6. Install Claude Code plugin
+
+**Examples:**
+```bash
+devflow install              # Interactive setup
+devflow install -y           # Non-interactive with defaults
+devflow install --force      # Re-run setup
+devflow install --skip-infra # Skip infrastructure
+```
 
 **Subcommands:**
 ```bash
@@ -109,10 +140,11 @@ devflow dev setup [OPTIONS]
 **Operations:**
 1. Check Docker daemon
 2. Load project configuration
-3. Pull Docker images
-4. Set up `.env` from template
-5. Resolve 1Password references
-6. Start infrastructure (if configured)
+3. Configure local git user (from project's `git` config)
+4. Pull Docker images
+5. Set up `.env` from template
+6. Resolve 1Password references
+7. Start infrastructure (if configured)
 
 ---
 
@@ -444,6 +476,7 @@ devflow secrets list [OPTIONS]
 |--------|-------------|
 | `--env`, `-e` | Environment (default: `staging`) |
 | `--source`, `-s` | Source (`1password`, `github`, `docker`) |
+| `--auth`, `-a` | GitHub auth method: `cli`, `app`, or `auto` (default: `auto`) |
 | `--json` | Output as JSON |
 
 ---
@@ -461,13 +494,21 @@ devflow secrets sync [OPTIONS]
 | `--from` | Source (default: `1password`) |
 | `--to` | Target (default: `github`) |
 | `--env`, `-e` | Environment (default: `staging`) |
+| `--auth`, `-a` | GitHub auth method: `cli`, `app`, or `auto` (default: `auto`) |
 | `--dry-run` | Show what would be synced |
 | `--json` | Output as JSON |
+
+**Auth Methods:**
+- `cli` - Use the `gh` CLI (requires `gh auth login`)
+- `app` - Use GitHub App authentication (requires config)
+- `auto` - Use App if configured, otherwise fall back to CLI
 
 **Examples:**
 ```bash
 devflow secrets sync --from 1password --to github
 devflow secrets sync --to docker --dry-run
+devflow secrets sync --to github --auth app  # Force GitHub App
+devflow secrets sync --to github --auth cli  # Force gh CLI
 ```
 
 ---
@@ -483,6 +524,7 @@ devflow secrets verify [OPTIONS]
 | Option | Description |
 |--------|-------------|
 | `--env`, `-e` | Environment (default: `staging`) |
+| `--auth`, `-a` | GitHub auth method: `cli`, `app`, or `auto` (default: `auto`) |
 | `--json` | Output as JSON |
 
 **Output:** Shows each secret's presence in 1Password, GitHub, and Docker.

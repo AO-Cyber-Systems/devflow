@@ -1,14 +1,32 @@
 """Secrets management commands."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
+if TYPE_CHECKING:
+    from devflow.core.config import DevflowConfig
+
 app = typer.Typer(no_args_is_help=True)
 console = Console()
+
+
+def _check_secrets_configured(config: DevflowConfig, json_output: bool = False) -> bool:
+    """Check if secrets are configured. Returns False and prints error if not."""
+    if config.secrets is None:
+        if json_output:
+            print(json.dumps({"success": False, "error": "Secrets not configured in devflow.yml"}))
+        else:
+            console.print("[red]Secrets not configured in devflow.yml[/red]")
+            console.print("[dim]Add a 'secrets' section to enable secrets management.[/dim]")
+        return False
+    return True
 
 
 def _get_repo_name() -> str | None:
@@ -41,12 +59,18 @@ def _get_repo_name() -> str | None:
 def list_secrets(
     env: str = typer.Option("staging", "--env", "-e", help="Environment (staging, production)"),
     source: str = typer.Option("1password", "--source", "-s", help="Secret source (1password, github, docker)"),
+    auth: str = typer.Option(
+        "auto",
+        "--auth",
+        "-a",
+        help="GitHub auth method: 'cli' (gh CLI), 'app' (GitHub App), or 'auto' (use app if configured)",
+    ),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ) -> None:
     """List secrets for the specified environment."""
     from devflow.core.config import load_project_config
     from devflow.providers.docker import DockerProvider
-    from devflow.providers.github import GitHubProvider
+    from devflow.providers.github import GitHubAppProvider, GitHubProvider, resolve_github_app_config
     from devflow.providers.onepassword import OnePasswordProvider
 
     config = load_project_config()
@@ -56,6 +80,12 @@ def list_secrets(
         else:
             console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
         raise typer.Exit(1)
+
+    if not _check_secrets_configured(config, json_output):
+        raise typer.Exit(1)
+
+    # Type narrowing - we know secrets is not None after the check above
+    assert config.secrets is not None
 
     secrets_list = []
 
@@ -69,7 +99,7 @@ def list_secrets(
             raise typer.Exit(1)
 
         vault = config.secrets.vault
-        items = op.list_items(vault)
+        items = op.list_items(vault or "")
 
         for item in items:
             secrets_list.append(
@@ -82,13 +112,48 @@ def list_secrets(
             )
 
     elif source == "github":
-        gh = GitHubProvider()
-        if not gh.is_authenticated():
-            if json_output:
-                print(json.dumps({"success": False, "error": "GitHub not authenticated"}))
-            else:
-                console.print("[red]GitHub not authenticated. Run 'gh auth login' first.[/red]")
-            raise typer.Exit(1)
+        # Determine which auth method to use
+        use_app_auth = False
+        github_config = config.secrets.github
+        gh: GitHubProvider | GitHubAppProvider
+
+        if auth == "app":
+            use_app_auth = True
+        elif auth == "auto" and github_config and github_config.auth == "app" and github_config.app:
+            use_app_auth = True
+
+        if use_app_auth:
+            if not github_config or not github_config.app:
+                if json_output:
+                    print(json.dumps({"success": False, "error": "GitHub App not configured in devflow.yml"}))
+                else:
+                    console.print("[red]GitHub App not configured.[/red]")
+                raise typer.Exit(1)
+
+            try:
+                vault = config.secrets.vault
+                resolved_config = resolve_github_app_config(github_config.app, vault)
+                gh = GitHubAppProvider(resolved_config)
+                if not gh.is_authenticated():
+                    if json_output:
+                        print(json.dumps({"success": False, "error": "GitHub App authentication failed"}))
+                    else:
+                        console.print("[red]GitHub App authentication failed.[/red]")
+                    raise typer.Exit(1)
+            except ValueError as e:
+                if json_output:
+                    print(json.dumps({"success": False, "error": str(e)}))
+                else:
+                    console.print(f"[red]{e}[/red]")
+                raise typer.Exit(1)
+        else:
+            gh = GitHubProvider()
+            if not gh.is_authenticated():
+                if json_output:
+                    print(json.dumps({"success": False, "error": "GitHub not authenticated"}))
+                else:
+                    console.print("[red]GitHub not authenticated. Run 'gh auth login' first.[/red]")
+                raise typer.Exit(1)
 
         repo = _get_repo_name()
         if not repo:
@@ -186,13 +251,19 @@ def sync(
     from_source: str = typer.Option("1password", "--from", help="Source (1password, env)"),
     to_target: str = typer.Option("github", "--to", help="Target (github, docker)"),
     env: str = typer.Option("staging", "--env", "-e", help="Environment"),
+    auth: str = typer.Option(
+        "auto",
+        "--auth",
+        "-a",
+        help="GitHub auth method: 'cli' (gh CLI), 'app' (GitHub App), or 'auto' (use app if configured)",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be synced"),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ) -> None:
     """Sync secrets from source to target."""
     from devflow.core.config import load_project_config
     from devflow.providers.docker import DockerProvider
-    from devflow.providers.github import GitHubProvider
+    from devflow.providers.github import GitHubAppProvider, GitHubProvider, resolve_github_app_config
     from devflow.providers.onepassword import OnePasswordProvider
 
     config = load_project_config()
@@ -202,6 +273,12 @@ def sync(
         else:
             console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
         raise typer.Exit(1)
+
+    if not _check_secrets_configured(config, json_output):
+        raise typer.Exit(1)
+
+    # Type narrowing - we know secrets is not None after the check above
+    assert config.secrets is not None
 
     if not json_output:
         console.print(f"[bold]Syncing secrets: {from_source} -> {to_target}[/bold] ({env})\n")
@@ -218,7 +295,7 @@ def sync(
 
     # Initialize providers
     op = None
-    gh = None
+    gh: GitHubProvider | GitHubAppProvider | None = None
     docker = None
     repo: str | None = None
 
@@ -232,13 +309,62 @@ def sync(
             raise typer.Exit(1)
 
     if to_target == "github":
-        gh = GitHubProvider()
-        if not gh.is_authenticated():
-            if json_output:
-                print(json.dumps({"success": False, "error": "GitHub not authenticated"}))
-            else:
-                console.print("[red]GitHub not authenticated. Run 'gh auth login' first.[/red]")
-            raise typer.Exit(1)
+        # Determine which auth method to use
+        use_app_auth = False
+        github_config = config.secrets.github
+
+        if auth == "app":
+            use_app_auth = True
+        elif auth == "auto" and github_config and github_config.auth == "app" and github_config.app:
+            use_app_auth = True
+        # auth == "cli" or no app config means use CLI
+
+        if use_app_auth:
+            # Validate app config exists
+            if not github_config or not github_config.app:
+                if json_output:
+                    print(json.dumps({"success": False, "error": "GitHub App not configured in devflow.yml"}))
+                else:
+                    console.print("[red]GitHub App not configured.[/red]")
+                    console.print("[dim]Add 'github.app' section to secrets config in devflow.yml[/dim]")
+                raise typer.Exit(1)
+
+            try:
+                # Resolve op:// references in app config
+                vault = config.secrets.vault
+                resolved_config = resolve_github_app_config(github_config.app, vault)
+                gh = GitHubAppProvider(resolved_config)
+
+                if not gh.is_authenticated():
+                    if json_output:
+                        print(json.dumps({"success": False, "error": "GitHub App authentication failed"}))
+                    else:
+                        console.print("[red]GitHub App authentication failed.[/red]")
+                        console.print("[dim]Check app_id, installation_id, and private_key in config.[/dim]")
+                    raise typer.Exit(1)
+
+                if not json_output:
+                    console.print("[dim]Using GitHub App authentication[/dim]\n")
+
+            except ValueError as e:
+                if json_output:
+                    print(json.dumps({"success": False, "error": str(e)}))
+                else:
+                    console.print(f"[red]{e}[/red]")
+                raise typer.Exit(1)
+        else:
+            # Use gh CLI
+            gh = GitHubProvider()
+            if not gh.is_authenticated():
+                if json_output:
+                    print(json.dumps({"success": False, "error": "GitHub not authenticated"}))
+                else:
+                    console.print("[red]GitHub not authenticated. Run 'gh auth login' first.[/red]")
+                raise typer.Exit(1)
+
+            if not json_output:
+                console.print("[dim]Using gh CLI authentication[/dim]\n")
+
         repo = _get_repo_name()
         if not repo:
             if json_output:
@@ -359,12 +485,18 @@ def sync(
 @app.command()
 def verify(
     env: str = typer.Option("staging", "--env", "-e", help="Environment to verify"),
+    auth: str = typer.Option(
+        "auto",
+        "--auth",
+        "-a",
+        help="GitHub auth method: 'cli' (gh CLI), 'app' (GitHub App), or 'auto' (use app if configured)",
+    ),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ) -> None:
     """Verify secrets are in sync across all systems."""
     from devflow.core.config import load_project_config
     from devflow.providers.docker import DockerProvider
-    from devflow.providers.github import GitHubProvider
+    from devflow.providers.github import GitHubAppProvider, GitHubProvider, resolve_github_app_config
     from devflow.providers.onepassword import OnePasswordProvider
 
     config = load_project_config()
@@ -374,6 +506,12 @@ def verify(
         else:
             console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
         raise typer.Exit(1)
+
+    if not _check_secrets_configured(config, json_output):
+        raise typer.Exit(1)
+
+    # Type narrowing - we know secrets is not None after the check above
+    assert config.secrets is not None
 
     if not json_output:
         console.print(f"[bold]Verifying secrets for {env}[/bold]\n")
@@ -388,14 +526,33 @@ def verify(
 
     # Initialize providers
     op = OnePasswordProvider()
-    gh = GitHubProvider()
     docker = DockerProvider()
+
+    # Determine GitHub auth method
+    gh: GitHubProvider | GitHubAppProvider | None = None
+    use_app_auth = False
+    github_config = config.secrets.github
+
+    if auth == "app":
+        use_app_auth = True
+    elif auth == "auto" and github_config and github_config.auth == "app" and github_config.app:
+        use_app_auth = True
+
+    if use_app_auth and github_config and github_config.app:
+        try:
+            vault = config.secrets.vault
+            resolved_config = resolve_github_app_config(github_config.app, vault)
+            gh = GitHubAppProvider(resolved_config)
+        except ValueError:
+            gh = None  # Fall back gracefully
+    else:
+        gh = GitHubProvider()
 
     vault = config.secrets.vault
     repo = _get_repo_name()
 
     # Get existing secrets from each source
-    github_secrets = set(gh.list_secrets(repo)) if gh.is_authenticated() and repo else set()
+    github_secrets = set(gh.list_secrets(repo)) if gh and gh.is_authenticated() and repo else set()
     docker_secrets = {s.get("Name") for s in docker.list_secrets()} if docker.is_authenticated() else set()
 
     results = []
@@ -512,6 +669,12 @@ def export(
         else:
             console.print("[red]No devflow.yml found. Run 'devflow init' first.[/red]")
         raise typer.Exit(1)
+
+    if not _check_secrets_configured(config, json_output):
+        raise typer.Exit(1)
+
+    # Type narrowing - we know secrets is not None after the check above
+    assert config.secrets is not None
 
     if not json_output and output != "-":
         console.print(f"[bold]Exporting secrets for {env}[/bold]\n")

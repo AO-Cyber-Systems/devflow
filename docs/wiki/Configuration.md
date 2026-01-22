@@ -1,8 +1,63 @@
 # Configuration Reference
 
-Devflow uses a `devflow.yml` file in your project root for all configuration.
+Devflow uses two levels of configuration:
 
-## Quick Start
+1. **Global configuration** (`~/.devflow/config.yml`) - User-wide settings applied to all projects
+2. **Project configuration** (`devflow.yml`) - Per-project settings in your project root
+
+## Global Configuration
+
+Created during `devflow install`, the global config stores user preferences:
+
+```yaml
+# ~/.devflow/config.yml
+version: "1"
+
+git:
+  user_name: "Your Name"
+  user_email: "your@email.com"
+  co_author_enabled: true
+  co_author_name: "Claude"
+  co_author_email: "noreply@anthropic.com"
+
+defaults:
+  secrets_provider: 1password   # Default for new projects
+  network_name: devflow-proxy
+  registry: ghcr.io
+
+infrastructure:
+  auto_start: false
+  traefik_http_port: 80
+  traefik_https_port: 443
+  traefik_dashboard_port: 8088
+
+setup_completed: true
+```
+
+### Global Settings Reference
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `git.user_name` | Git user name | Detected from git |
+| `git.user_email` | Git user email | Detected from git |
+| `git.co_author_enabled` | Add Claude co-author to commits | `true` |
+| `git.co_author_name` | Co-author name | `Claude` |
+| `git.co_author_email` | Co-author email | `noreply@anthropic.com` |
+| `defaults.secrets_provider` | Default secrets provider for new projects | `null` |
+| `defaults.network_name` | Docker network for shared infrastructure | `devflow-proxy` |
+| `defaults.registry` | Default container registry | `null` |
+| `infrastructure.auto_start` | Auto-start Traefik with devflow commands | `false` |
+| `infrastructure.traefik_http_port` | HTTP port | `80` |
+| `infrastructure.traefik_https_port` | HTTPS port | `443` |
+| `infrastructure.traefik_dashboard_port` | Dashboard port | `8088` |
+
+---
+
+## Project Configuration
+
+Create `devflow.yml` in your project root with `devflow init`:
+
+### Quick Start
 
 ```yaml
 version: "1"
@@ -19,9 +74,7 @@ development:
   compose_file: docker-compose.yml
 ```
 
-## Complete Schema
-
-### Root Structure
+### Complete Schema
 
 ```yaml
 version: "1"           # Configuration version (required)
@@ -31,6 +84,7 @@ secrets: {...}         # Secrets configuration
 deployment: {...}      # Deployment configuration
 development: {...}     # Local development configuration
 infrastructure: {...}  # Shared infrastructure configuration
+git: {...}             # Git configuration (project-level overrides)
 ```
 
 ---
@@ -139,11 +193,17 @@ Secrets management and synchronization.
 ```yaml
 secrets:
   provider: string          # Secrets provider
-                            # Options: 1password, vault
-                            # Default: 1password
+                            # Options: 1password, env
+                            # Default: null (uses global default)
 
   vault: string             # 1Password vault name
-                            # Default: AOCyber
+
+  github:                   # GitHub authentication settings
+    auth: string            # Auth method: "cli" (default) or "app"
+    app:                    # Required if auth: "app"
+      app_id: string        # GitHub App ID
+      installation_id: string  # Installation ID for your org
+      private_key: string   # PEM private key (or op:// reference)
 
   mappings:                 # List of secret mappings
     - name: string                    # Secret identifier (required)
@@ -153,7 +213,7 @@ secrets:
       docker_secret: string           # Docker Swarm secret name
 ```
 
-### Example
+### Basic Example
 
 ```yaml
 secrets:
@@ -179,6 +239,69 @@ secrets:
       docker_secret: jwt_secret
 ```
 
+### GitHub App Authentication
+
+For better security and auditability, you can use a GitHub App instead of personal access tokens. This is recommended for CI/CD and multi-repo secret sync.
+
+**Benefits of GitHub App:**
+- Not tied to a personal account
+- Fine-grained per-repository permissions
+- Higher rate limits (15,000/hour vs 5,000/hour)
+- Automatic token rotation (JWT expires in 10 min)
+- Shows as App in audit logs
+
+**Configuration:**
+
+```yaml
+secrets:
+  provider: 1password
+  vault: AOCyber-Infrastructure
+
+  github:
+    auth: app
+    app:
+      # Direct values
+      app_id: "12345"
+      installation_id: "67890"
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        ...
+        -----END RSA PRIVATE KEY-----
+
+      # Or use 1Password references (recommended)
+      app_id: op://AOCyber-Infrastructure/GitHub-App/app_id
+      installation_id: op://AOCyber-Infrastructure/GitHub-App/installation_id
+      private_key: op://AOCyber-Infrastructure/GitHub-App/private_key
+
+  mappings:
+    - name: database_url
+      op_item: "Database"
+      op_field: url
+      github_secret: DATABASE_URL
+```
+
+**Setup Steps:**
+
+1. Create a GitHub App in your org settings
+2. Configure permissions: `secrets: write`, `metadata: read`
+3. Install the App on target repositories
+4. Generate and download the private key
+5. Store App ID, Installation ID, and private key in 1Password
+6. Configure `secrets.github.app` in devflow.yml
+
+**Usage:**
+
+```bash
+# Uses GitHub App if configured (auto mode)
+devflow secrets sync --to github
+
+# Force GitHub App
+devflow secrets sync --to github --auth app
+
+# Force gh CLI (ignores app config)
+devflow secrets sync --to github --auth cli
+```
+
 ---
 
 ## `deployment`
@@ -193,7 +316,6 @@ deployment:
                             # Default: ghcr.io
 
   organization: string      # Registry organization/namespace
-                            # Default: ao-cyber-systems
 ```
 
 ### `deployment.services`
@@ -315,7 +437,7 @@ Shared Traefik infrastructure settings.
 ```yaml
 infrastructure:
   enabled: bool             # Enable shared infrastructure
-                            # Default: true
+                            # Default: false
 
   network_name: string      # Docker network name
                             # Default: devflow-proxy
@@ -370,6 +492,46 @@ infrastructure:
       - "*.myapp.localhost"
       - "*.api.localhost"
     cert_dir: ~/.devflow/certs
+```
+
+---
+
+## `git`
+
+Project-level git configuration. Overrides global settings for this project.
+
+```yaml
+git:
+  user:
+    name: string            # Git user name (optional)
+    email: string           # Git user email (optional)
+
+  co_author:
+    enabled: bool           # Enable Claude co-author (default: true)
+    name: string            # Co-author name (default: Claude)
+    email: string           # Co-author email (default: noreply@anthropic.com)
+```
+
+### Example
+
+```yaml
+git:
+  user:
+    name: "Project Team"
+    email: "team@example.com"
+
+  co_author:
+    enabled: true
+    name: "Claude"
+    email: "noreply@anthropic.com"
+```
+
+To disable Claude co-author for a project:
+
+```yaml
+git:
+  co_author:
+    enabled: false
 ```
 
 ---
@@ -430,6 +592,12 @@ database:
 secrets:
   provider: 1password
   vault: Development
+  github:
+    auth: app  # Use GitHub App instead of gh CLI
+    app:
+      app_id: op://Development/GitHub-App/app_id
+      installation_id: op://Development/GitHub-App/installation_id
+      private_key: op://Development/GitHub-App/private_key
   mappings:
     - name: database_url
       op_item: "Database"
@@ -467,4 +635,8 @@ infrastructure:
     domains:
       - "*.localhost"
       - "*.myapp.localhost"
+
+git:
+  co_author:
+    enabled: true
 ```
