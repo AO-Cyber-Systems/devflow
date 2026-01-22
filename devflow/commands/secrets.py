@@ -220,6 +220,7 @@ def sync(
     op = None
     gh = None
     docker = None
+    repo: str | None = None
 
     if from_source == "1password":
         op = OnePasswordProvider()
@@ -265,6 +266,7 @@ def sync(
         # Read from source
         value = None
         if from_source == "1password" and mapping.op_item and mapping.op_field:
+            assert op is not None  # Validated above
             value = op.read_field(mapping.op_item, mapping.op_field, vault)
             if not value:
                 result["status"] = "error"
@@ -281,6 +283,8 @@ def sync(
 
         # Write to target
         if to_target == "github" and mapping.github_secret:
+            assert gh is not None  # Validated above
+            assert repo is not None  # Validated above
             if dry_run:
                 result["status"] = "would_sync"
                 result["target"] = mapping.github_secret
@@ -296,6 +300,7 @@ def sync(
                     failed += 1
 
         elif to_target == "docker" and mapping.docker_secret:
+            assert docker is not None  # Validated above
             if dry_run:
                 result["status"] = "would_sync"
                 result["target"] = mapping.docker_secret
@@ -452,25 +457,25 @@ def verify(
         table.add_column("Docker")
         table.add_column("Status")
 
+        def _status_icon(val: bool | None) -> str:
+            if val is None:
+                return "[dim]-[/dim]"
+            return "[green]Yes[/green]" if val else "[red]No[/red]"
+
         for r in results:
-
-            def _status_icon(val):
-                if val is None:
-                    return "[dim]-[/dim]"
-                return "[green]Yes[/green]" if val else "[red]No[/red]"
-
+            status = str(r.get("status", ""))
             status_color = {
                 "in_sync": "green",
                 "partial": "yellow",
                 "missing": "red",
-            }.get(r["status"], "white")
+            }.get(status, "white")
 
             table.add_row(
-                r["name"],
-                _status_icon(r["op"]),
-                _status_icon(r["github"]),
-                _status_icon(r["docker"]),
-                f"[{status_color}]{r['status']}[/{status_color}]",
+                str(r.get("name", "")),
+                _status_icon(r.get("op")),  # type: ignore[arg-type]
+                _status_icon(r.get("github")),  # type: ignore[arg-type]
+                _status_icon(r.get("docker")),  # type: ignore[arg-type]
+                f"[{status_color}]{status}[/{status_color}]",
             )
 
         console.print(table)

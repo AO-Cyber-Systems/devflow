@@ -96,7 +96,7 @@ class AdvisoryLock:
             (self.lock_id,),
         )
         result = cursor.fetchone()
-        return result and result[0] > 0
+        return bool(result and result[0] > 0)
 
     def __enter__(self) -> AdvisoryLock:
         """Context manager entry."""

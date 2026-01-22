@@ -3,6 +3,7 @@
 import json
 import shutil
 import subprocess
+from typing import Any
 
 from devflow.providers.base import Provider
 
@@ -36,23 +37,25 @@ class OnePasswordProvider(Provider):
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             return False
 
-    def list_vaults(self) -> list[dict]:
+    def list_vaults(self) -> list[dict[str, Any]]:
         """List available vaults."""
         try:
             result = self.run(["vault", "list", "--format", "json"])
-            return json.loads(result.stdout)
+            data: list[dict[str, Any]] = json.loads(result.stdout)
+            return data
         except subprocess.CalledProcessError:
             return []
 
-    def list_items(self, vault: str) -> list[dict]:
+    def list_items(self, vault: str) -> list[dict[str, Any]]:
         """List items in a vault."""
         try:
             result = self.run(["item", "list", "--vault", vault, "--format", "json"])
-            return json.loads(result.stdout)
+            data: list[dict[str, Any]] = json.loads(result.stdout)
+            return data
         except subprocess.CalledProcessError:
             return []
 
-    def get_item(self, item_name: str, vault: str | None = None) -> dict | None:
+    def get_item(self, item_name: str, vault: str | None = None) -> dict[str, Any] | None:
         """Get an item by name."""
         args = ["item", "get", item_name, "--format", "json"]
         if vault:
@@ -60,7 +63,8 @@ class OnePasswordProvider(Provider):
 
         try:
             result = self.run(args)
-            return json.loads(result.stdout)
+            data: dict[str, Any] = json.loads(result.stdout)
+            return data
         except subprocess.CalledProcessError:
             return None
 
@@ -71,7 +75,7 @@ class OnePasswordProvider(Provider):
 
         try:
             result = self.run(["read", reference])
-            return result.stdout.strip()
+            return str(result.stdout.strip())
         except subprocess.CalledProcessError:
             return None
 

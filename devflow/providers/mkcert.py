@@ -124,7 +124,7 @@ class MkcertProvider(Provider):
         try:
             result = self.run(["-CAROOT"], capture_output=True, check=False, timeout=10)
             if result.returncode == 0:
-                return result.stdout.strip()
+                return str(result.stdout.strip())
             return None
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             return None

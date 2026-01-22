@@ -5,6 +5,7 @@ import shutil
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -344,8 +345,8 @@ class ComposeTransformer:
         Returns:
             Tuple of (modified compose_data, list of changes, list of warnings)
         """
-        changes = []
-        warnings = []
+        changes: list[str] = []
+        warnings: list[str] = []
         services = compose_data.get("services", {})
 
         for service_name, service_config in services.items():
@@ -370,25 +371,30 @@ class ComposeTransformer:
 
                 if modified:
                     # Remove duplicates while preserving order
-                    seen = set()
-                    service_config["networks"] = [n for n in new_networks if not (n in seen or seen.add(n))]
+                    seen: set[str] = set()
+                    unique_networks: list[str] = []
+                    for n in new_networks:
+                        if n not in seen:
+                            seen.add(n)
+                            unique_networks.append(n)
+                    service_config["networks"] = unique_networks
                     changes.append(f"Updated networks for service '{service_name}'")
 
             elif isinstance(service_networks, dict):
                 # Extended format: networks: proxy: aliases: [...]
-                new_networks = {}
+                new_networks_dict: dict[str, Any] = {}
                 modified = False
 
                 for net, net_config in service_networks.items():
                     if net in self.config.legacy_networks and net != self.config.network_name:
                         # Preserve any aliases or other config
-                        new_networks[self.config.network_name] = net_config
+                        new_networks_dict[self.config.network_name] = net_config
                         modified = True
                     else:
-                        new_networks[net] = net_config
+                        new_networks_dict[net] = net_config
 
                 if modified:
-                    service_config["networks"] = new_networks
+                    service_config["networks"] = new_networks_dict
                     changes.append(f"Updated networks for service '{service_name}'")
 
         compose_data["services"] = services
@@ -412,7 +418,7 @@ class ComposeTransformer:
             image = service_config.get("image", "")
             for pattern in self.TRAEFIK_IMAGE_PATTERNS:
                 if re.match(pattern, image, re.IGNORECASE):
-                    return service_name
+                    return str(service_name)
 
         return None
 

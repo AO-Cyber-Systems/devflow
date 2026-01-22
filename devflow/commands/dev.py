@@ -159,16 +159,16 @@ def setup(
             from devflow.providers.infrastructure import InfrastructureProvider
 
             infra = InfrastructureProvider(config.infrastructure)
-            result = infra.start()
+            infra_result = infra.start()
 
-            if result.success:
+            if infra_result.success:
                 steps.append({"name": "infrastructure", "status": "ok", "message": "Infrastructure started"})
                 if not json_output:
                     console.print("[green]5. Infrastructure[/green] - started (Traefik)")
             else:
-                steps.append({"name": "infrastructure", "status": "warning", "message": result.message})
+                steps.append({"name": "infrastructure", "status": "warning", "message": infra_result.message})
                 if not json_output:
-                    console.print(f"[yellow]5. Infrastructure[/yellow] - {result.message}")
+                    console.print(f"[yellow]5. Infrastructure[/yellow] - {infra_result.message}")
         except Exception as e:
             steps.append({"name": "infrastructure", "status": "warning", "message": str(e)})
             if not json_output:

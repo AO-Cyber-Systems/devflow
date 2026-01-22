@@ -1,6 +1,7 @@
 """Deployment commands."""
 
 import json
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -10,12 +11,12 @@ app = typer.Typer(no_args_is_help=True)
 console = Console()
 
 
-def _get_env_config(config, env: str):
+def _get_env_config(config: Any, env: str) -> Any:
     """Get deployment environment configuration."""
     return config.deployment.environments.get(env)
 
 
-def _build_image_tag(config, service_name: str, service_config) -> str:
+def _build_image_tag(config: Any, service_name: str, service_config: Any) -> str:
     """Build the full image tag for a service."""
     registry = config.deployment.registry
     org = config.deployment.organization
@@ -441,6 +442,7 @@ def rollback(
             success = ssh_result.success
             error = ssh_result.stderr if not success else None
         else:
+            assert docker is not None  # Validated above when no host
             success = docker.service_rollback(service_full_name)
             error = None if success else "Rollback failed"
 
@@ -451,7 +453,7 @@ def rollback(
                 console.print("  [green]Rolled back successfully[/green]")
         else:
             result["status"] = "failed"
-            result["error"] = error
+            result["error"] = error or "Unknown error"
             failed += 1
             if not json_output:
                 console.print(f"  [red]Failed: {error}[/red]")
@@ -582,7 +584,7 @@ def logs(
             output = process.stdout.read() if process.stdout else ""
             process.wait()
             print(json.dumps({"success": True, "logs": output}))
-        else:
+        elif process.stdout:
             try:
                 for line in process.stdout:
                     console.print(line, end="")

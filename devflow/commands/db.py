@@ -261,7 +261,7 @@ def rollback(
                 console.print(f"[green]Rolled back:[/green] {migration_name}")
         else:
             result["status"] = "error"
-            result["error"] = rollback_result.error
+            result["error"] = rollback_result.error or "Unknown error"
             failed += 1
             if not json_output:
                 console.print(f"[red]Failed:[/red] {migration_name}")

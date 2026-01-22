@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+from typing import Any
 
 from devflow.providers.base import Provider
 
@@ -42,7 +43,7 @@ class GitHubProvider(Provider):
 
         try:
             result = self.run(["api", "user", "-q", ".login"])
-            return result.stdout.strip()
+            return str(result.stdout.strip())
         except subprocess.CalledProcessError:
             return None
 
@@ -79,7 +80,7 @@ class GitHubProvider(Provider):
         except subprocess.CalledProcessError:
             return False
 
-    def get_workflow_runs(self, repo: str, limit: int = 10) -> list[dict]:
+    def get_workflow_runs(self, repo: str, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent workflow runs."""
         try:
             result = self.run(
@@ -96,6 +97,7 @@ class GitHubProvider(Provider):
             )
             import json
 
-            return json.loads(result.stdout)
+            data: list[dict[str, Any]] = json.loads(result.stdout)
+            return data
         except subprocess.CalledProcessError:
             return []

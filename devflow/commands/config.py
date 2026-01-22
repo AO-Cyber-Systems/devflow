@@ -1,5 +1,7 @@
 """Configuration management commands."""
 
+from typing import Any
+
 import typer
 from rich.console import Console
 from rich.syntax import Syntax
@@ -67,7 +69,7 @@ def env(
         console.print(f"Current environment: [bold]{current}[/bold]")
 
 
-def _parse_value(value: str):
+def _parse_value(value: str) -> bool | int | float | list[Any] | dict[str, Any] | str:
     """Parse a string value to the appropriate Python type."""
     import json as json_lib
 
@@ -92,7 +94,8 @@ def _parse_value(value: str):
     # JSON array or object
     if value.startswith("[") or value.startswith("{"):
         try:
-            return json_lib.loads(value)
+            parsed: list[Any] | dict[str, Any] = json_lib.loads(value)
+            return parsed
         except json_lib.JSONDecodeError:
             pass
 
@@ -100,7 +103,7 @@ def _parse_value(value: str):
     return value
 
 
-def _set_nested_value(data: dict, keys: list[str], value) -> None:
+def _set_nested_value(data: dict[str, Any], keys: list[str], value: Any) -> None:
     """Set a value in a nested dictionary using a list of keys."""
     for key in keys[:-1]:
         if key not in data:
@@ -109,7 +112,7 @@ def _set_nested_value(data: dict, keys: list[str], value) -> None:
     data[keys[-1]] = value
 
 
-def _get_nested_value(data: dict, keys: list[str]):
+def _get_nested_value(data: dict[str, Any], keys: list[str]) -> Any:
     """Get a value from a nested dictionary using a list of keys."""
     for key in keys:
         if not isinstance(data, dict) or key not in data:

@@ -108,7 +108,7 @@ def install_claude_plugin(devflow_root: Path) -> bool:
         return False
 
 
-def check_prerequisites() -> dict[str, bool]:
+def check_prerequisites() -> dict[str, dict[str, bool]]:
     """Check all prerequisite tools."""
     tools = {
         "git": shutil.which("git") is not None,

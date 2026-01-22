@@ -1,18 +1,24 @@
 """Infrastructure management commands for shared local development."""
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
+if TYPE_CHECKING:
+    from devflow.providers.infrastructure import InfrastructureProvider
+
 app = typer.Typer(no_args_is_help=True, help="Manage shared development infrastructure")
 console = Console()
 
 
-def _get_provider():
+def _get_provider() -> InfrastructureProvider:
     """Get the infrastructure provider with config from devflow.yml or defaults."""
     from devflow.core.config import InfrastructureConfig, load_project_config
     from devflow.providers.infrastructure import InfrastructureProvider
