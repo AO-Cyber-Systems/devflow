@@ -42,6 +42,75 @@ pip install -e .
 pipx install devflow
 ```
 
+## First-Time Setup
+
+After installing devflow, run the setup wizard to configure your environment:
+
+```bash
+devflow install
+```
+
+This interactive wizard guides you through:
+
+1. **Create directories** - Creates `~/.devflow/` for global configuration
+2. **Git configuration** - Detects existing git config or prompts for name/email
+3. **Default preferences** - Sets your preferred secrets provider and container registry
+4. **Infrastructure setup** - Creates Docker network and optionally generates local HTTPS certificates
+5. **Claude Code plugin** - Installs the Claude Code integration for AI-assisted development
+
+### Setup Options
+
+```bash
+# Run with all defaults (non-interactive)
+devflow install -y
+
+# Skip specific steps
+devflow install --skip-git        # Skip git configuration
+devflow install --skip-plugin     # Skip Claude Code plugin
+devflow install --skip-infra      # Skip infrastructure setup
+
+# Re-run setup (overwrites existing config)
+devflow install --force
+```
+
+### What Gets Created
+
+After setup, your `~/.devflow/` directory contains:
+
+```
+~/.devflow/
+├── config.yml          # Global configuration
+├── certs/              # Local HTTPS certificates (optional)
+│   ├── cert.pem
+│   └── key.pem
+└── plugins/            # Installed plugins
+    └── devflow.mdc     # Claude Code plugin
+```
+
+### Global Configuration
+
+The `~/.devflow/config.yml` stores user-wide settings:
+
+```yaml
+version: "1"
+git:
+  user_name: "Your Name"
+  user_email: "your@email.com"
+  co_author_enabled: true
+  co_author_name: "Claude"
+  co_author_email: "noreply@anthropic.com"
+defaults:
+  secrets_provider: 1password  # or: env, null
+  network_name: devflow-proxy
+  registry: ghcr.io
+infrastructure:
+  auto_start: false
+  traefik_http_port: 80
+  traefik_https_port: 443
+  traefik_dashboard_port: 8088
+setup_completed: true
+```
+
 ## Verify Installation
 
 ```bash
@@ -52,34 +121,49 @@ devflow version
 devflow doctor
 ```
 
-The `doctor` command checks all required and optional tools:
+The `doctor` command checks all required tools, authentication status, and configuration:
 
 ```
 $ devflow doctor
 
-Tool Installation
-┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
-┃ Tool            ┃ Status  ┃ Version             ┃
-┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
-│ GitHub CLI      │ ✓       │ gh version 2.40.1   │
-│ 1Password CLI   │ ✓       │ 2.24.0              │
-│ Docker          │ ✓       │ 24.0.7              │
-│ Supabase CLI    │ ✓       │ 1.123.4             │
-│ PostgreSQL      │ ✓       │ psql 15.4           │
-│ Git             │ ✓       │ git version 2.43.0  │
-└─────────────────┴─────────┴─────────────────────┘
+Devflow System Health Check
 
-Tool Authentication
-┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
-┃ Tool            ┃ Status          ┃
-┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
-│ GitHub CLI      │ ✓ Authenticated │
-│ 1Password CLI   │ ✓ Authenticated │
-│ Docker          │ ✓ Running       │
-└─────────────────┴─────────────────┘
+Tool Installation
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓
+┃ Tool              ┃ Binary   ┃ Status    ┃ Version             ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
+│ GitHub CLI        │ gh       │ Installed │ gh version 2.40.1   │
+│ 1Password CLI     │ op       │ Installed │ 2.24.0              │
+│ Docker            │ docker   │ Installed │ 24.0.7              │
+│ Supabase CLI      │ supabase │ Installed │ 1.123.4             │
+│ PostgreSQL Client │ psql     │ Installed │ psql 15.4           │
+│ Git               │ git      │ Installed │ git version 2.43.0  │
+└───────────────────┴──────────┴───────────┴─────────────────────┘
+
+Authentication Status
+┏━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Tool     ┃ Status  ┃ Details       ┃
+┡━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ gh       │ OK      │ Authenticated │
+│ op       │ OK      │ Signed in     │
+│ docker   │ OK      │ Running       │
+│ supabase │ OK      │ Ready         │
+└──────────┴─────────┴───────────────┘
+
+Configuration Status
+  Global setup: Completed
+  Global config: /home/user/.devflow/config.yml
+    Git name: Your Name
+    Git email: your@email.com
+  Project config: Not found (run 'devflow init' to create)
+
+Summary
+  All required tools are installed.
 ```
 
 ## Initialize a Project
+
+After global setup, initialize devflow in your project:
 
 ```bash
 cd your-project
@@ -96,9 +180,27 @@ devflow init --preset aocodex
 devflow init --force
 ```
 
-## Post-Installation Setup
+## Tool Authentication
 
-### 1. Configure Docker
+Some tools require authentication to use their features:
+
+### 1Password CLI
+
+```bash
+# Sign in (creates session)
+eval $(op signin)
+
+# Or use biometric unlock if configured
+op signin --biometric
+```
+
+### GitHub CLI
+
+```bash
+gh auth login
+```
+
+### Docker
 
 Ensure Docker daemon is running:
 
@@ -106,46 +208,66 @@ Ensure Docker daemon is running:
 docker info
 ```
 
-### 2. Authenticate 1Password CLI (Optional)
+## Local HTTPS Setup
+
+For local HTTPS support with valid certificates:
 
 ```bash
-eval $(op signin)
-```
-
-### 3. Authenticate GitHub CLI (Optional)
-
-```bash
-gh auth login
-```
-
-### 4. Install Local CA (Optional)
-
-For local HTTPS support:
-
-```bash
-# Install mkcert
+# Install mkcert (if not already installed)
 brew install mkcert
 
 # Install local CA to system trust store
 mkcert -install
+```
 
-# Verify CA installation
+If you ran `devflow install` with infrastructure enabled, certificates are already generated in `~/.devflow/certs/`. Otherwise, you can generate them manually:
+
+```bash
+# Start shared infrastructure (generates certs if needed)
+devflow infra up
+
+# Verify setup
 devflow infra doctor
 ```
 
-## Claude Code Integration
+## Troubleshooting
 
-Devflow includes a Claude Code plugin for AI-assisted development:
+### "Devflow not set up" warning
+
+Run the setup wizard:
 
 ```bash
-# Install the Claude Code plugin
 devflow install
+```
 
-# Check installation status
-devflow install status
+### Missing tools
 
-# Uninstall if needed
-devflow install uninstall
+Install the required tool and run doctor again:
+
+```bash
+# Example: Install PostgreSQL client
+brew install postgresql
+
+# Verify
+devflow doctor
+```
+
+### Permission denied for Docker
+
+Add your user to the docker group:
+
+```bash
+sudo usermod -aG docker $USER
+# Log out and back in for changes to take effect
+```
+
+### Certificate issues
+
+Reinstall the local CA:
+
+```bash
+mkcert -install
+devflow infra up
 ```
 
 ## Next Steps
