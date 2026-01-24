@@ -39,6 +39,13 @@ env/
 htmlcov/
 .tox/
 .nox/
+coverage/
+
+# UI Testing
+ui/test-results/
+ui/playwright-report/
+ui/coverage/
+.playwright-mcp/
 
 # Type checking
 .mypy_cache/
