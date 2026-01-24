@@ -133,9 +133,7 @@ class ProjectsHandler:
             try:
                 config = load_project_config(project_path)
                 status["name"] = config.project.name
-                status["infrastructure_enabled"] = (
-                    config.infrastructure.enabled if config.infrastructure else False
-                )
+                status["infrastructure_enabled"] = config.infrastructure.enabled if config.infrastructure else False
 
                 if config.development:
                     status["services_total"] = len(config.development.services)
@@ -216,8 +214,6 @@ development:
 
         if preset_dir.exists():
             for preset_file in preset_dir.glob("*.yml"):
-                presets.append(
-                    {"name": preset_file.stem, "path": str(preset_file)}
-                )
+                presets.append({"name": preset_file.stem, "path": str(preset_file)})
 
         return {"presets": presets}

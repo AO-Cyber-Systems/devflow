@@ -69,9 +69,7 @@ class RpcServer:
         if request.method not in self._methods:
             return RpcResponse(
                 id=request.id,
-                error=RpcError(
-                    ErrorCodes.METHOD_NOT_FOUND, f"Method not found: {request.method}"
-                ),
+                error=RpcError(ErrorCodes.METHOD_NOT_FOUND, f"Method not found: {request.method}"),
             )
 
         handler = self._methods[request.method]

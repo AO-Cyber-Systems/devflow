@@ -64,9 +64,7 @@ class DevFlowServer:
         self.handlers[name] = method
         logger.debug(f"Registered handler: {name}")
 
-    async def handle_client(
-        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-    ) -> None:
+    async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         """Handle an incoming client connection.
 
         Reads JSON-RPC requests line by line and sends responses.
@@ -199,9 +197,7 @@ class DevFlowServer:
         Blocks until the server is stopped or cancelled.
         """
         self._running = True
-        self._server = await asyncio.start_server(
-            self.handle_client, self.host, self.port
-        )
+        self._server = await asyncio.start_server(self.handle_client, self.host, self.port)
 
         # Get actual port if 0 was specified
         if self.port == 0:
@@ -219,9 +215,7 @@ class DevFlowServer:
         Returns immediately after starting. Use stop() to shut down.
         """
         self._running = True
-        self._server = await asyncio.start_server(
-            self.handle_client, self.host, self.port
-        )
+        self._server = await asyncio.start_server(self.handle_client, self.host, self.port)
 
         # Get actual port if 0 was specified
         if self.port == 0:

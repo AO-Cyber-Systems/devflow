@@ -331,9 +331,7 @@ a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0E=
     @patch("devflow.providers.github.requests.get")
     @patch("devflow.providers.github.requests.post")
     @patch("devflow.providers.github.jwt.encode")
-    def test_list_secrets_success(
-        self, mock_jwt_encode: MagicMock, mock_post: MagicMock, mock_get: MagicMock
-    ) -> None:
+    def test_list_secrets_success(self, mock_jwt_encode: MagicMock, mock_post: MagicMock, mock_get: MagicMock) -> None:
         """Test successful secrets listing."""
         mock_jwt_encode.return_value = "mock_jwt_token"
         mock_post.return_value = MagicMock(

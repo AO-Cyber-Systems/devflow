@@ -110,9 +110,7 @@ class TestDeployHandlerStatus:
         mock_load.return_value = mock_config
 
         mock_docker = MagicMock()
-        mock_docker.list_services.return_value = [
-            {"Name": "mystack_api", "Replicas": "1/1", "Mode": "replicated"}
-        ]
+        mock_docker.list_services.return_value = [{"Name": "mystack_api", "Replicas": "1/1", "Mode": "replicated"}]
         mock_docker_class.return_value = mock_docker
 
         handler = DeployHandler()

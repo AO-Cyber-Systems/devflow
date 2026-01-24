@@ -77,9 +77,7 @@ class SecretsHandler:
         except Exception:
             return None
 
-    def list(
-        self, path: str, environment: str | None = None, source: str | None = None
-    ) -> dict[str, Any]:
+    def list(self, path: str, environment: str | None = None, source: str | None = None) -> dict[str, Any]:
         """List secrets from configuration.
 
         Args:
@@ -260,6 +258,7 @@ class SecretsHandler:
                             continue
                     elif from_source == "env":
                         import os
+
                         env_name = mapping.name.upper().replace("-", "_")
                         value = os.environ.get(env_name)
                         if not value:
@@ -409,9 +408,7 @@ class SecretsHandler:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def export(
-        self, path: str, environment: str, format: str = "env"
-    ) -> dict[str, Any]:
+    def export(self, path: str, environment: str, format: str = "env") -> dict[str, Any]:
         """Export secrets to file or env format.
 
         Reads values from 1Password and outputs in requested format.
@@ -479,6 +476,7 @@ class SecretsHandler:
 
             elif format == "json":
                 import json
+
                 content = json.dumps(secrets_data, indent=2)
 
             elif format == "yaml":
@@ -515,33 +513,41 @@ class SecretsHandler:
 
         # 1Password
         op_available = self._onepassword.is_available()
-        providers.append({
-            "name": "1password",
-            "available": op_available,
-            "authenticated": self._onepassword.is_authenticated() if op_available else False,
-        })
+        providers.append(
+            {
+                "name": "1password",
+                "available": op_available,
+                "authenticated": self._onepassword.is_authenticated() if op_available else False,
+            }
+        )
 
         # GitHub
         gh_available = self._github.is_available()
-        providers.append({
-            "name": "github",
-            "available": gh_available,
-            "authenticated": self._github.is_authenticated() if gh_available else False,
-        })
+        providers.append(
+            {
+                "name": "github",
+                "available": gh_available,
+                "authenticated": self._github.is_authenticated() if gh_available else False,
+            }
+        )
 
         # Docker
         docker_available = self._docker.is_available()
-        providers.append({
-            "name": "docker",
-            "available": docker_available,
-            "authenticated": docker_available,  # Docker secrets don't require separate auth
-        })
+        providers.append(
+            {
+                "name": "docker",
+                "available": docker_available,
+                "authenticated": docker_available,  # Docker secrets don't require separate auth
+            }
+        )
 
         # Environment variables (always available)
-        providers.append({
-            "name": "env",
-            "available": True,
-            "authenticated": True,
-        })
+        providers.append(
+            {
+                "name": "env",
+                "available": True,
+                "authenticated": True,
+            }
+        )
 
         return {"providers": providers}

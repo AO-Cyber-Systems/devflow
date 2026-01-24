@@ -60,9 +60,7 @@ class SystemHandler:
         overall_status = "healthy"
 
         # Check Docker
-        docker_check = self._check_provider(
-            self._docker, "Docker", "tool", "Install Docker Desktop or Docker Engine"
-        )
+        docker_check = self._check_provider(self._docker, "Docker", "tool", "Install Docker Desktop or Docker Engine")
         checks.append(docker_check)
         if docker_check["status"] == "error":
             overall_status = "error"
@@ -114,9 +112,7 @@ class SystemHandler:
 
         return {"overall_status": overall_status, "checks": checks}
 
-    def _check_provider(
-        self, provider: Any, name: str, category: str, fix_hint: str
-    ) -> dict[str, Any]:
+    def _check_provider(self, provider: Any, name: str, category: str, fix_hint: str) -> dict[str, Any]:
         """Check a provider's status."""
         try:
             available = provider.is_available()

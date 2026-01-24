@@ -52,15 +52,11 @@ class InfraHandler:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def stop(
-        self, remove_volumes: bool = False, remove_network: bool = False
-    ) -> dict[str, Any]:
+    def stop(self, remove_volumes: bool = False, remove_network: bool = False) -> dict[str, Any]:
         """Stop infrastructure."""
         try:
             provider = self._get_provider()
-            result = provider.stop(
-                remove_volumes=remove_volumes, remove_network=remove_network
-            )
+            result = provider.stop(remove_volumes=remove_volumes, remove_network=remove_network)
             return {
                 "success": result.success,
                 "message": result.message,
@@ -69,9 +65,7 @@ class InfraHandler:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def configure(
-        self, path: str, compose_file: str | None = None, dry_run: bool = False
-    ) -> dict[str, Any]:
+    def configure(self, path: str, compose_file: str | None = None, dry_run: bool = False) -> dict[str, Any]:
         """Configure a project for infrastructure."""
         try:
             project_path = Path(path).resolve()
@@ -137,9 +131,7 @@ class InfraHandler:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def hosts(
-        self, action: str, domains: list[str] | None = None
-    ) -> dict[str, Any]:
+    def hosts(self, action: str, domains: list[str] | None = None) -> dict[str, Any]:
         """Manage hosts file entries."""
         try:
             provider = self._get_provider()

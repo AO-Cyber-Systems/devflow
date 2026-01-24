@@ -105,9 +105,7 @@ async def run_server_async(host: str = "127.0.0.1", port: int = 9876) -> DevFlow
 
 def main() -> None:
     """Main entry point for the service."""
-    parser = argparse.ArgumentParser(
-        description="DevFlow TCP service for remote/WSL2 communication"
-    )
+    parser = argparse.ArgumentParser(description="DevFlow TCP service for remote/WSL2 communication")
     parser.add_argument(
         "--host",
         default="127.0.0.1",

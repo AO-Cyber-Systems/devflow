@@ -62,9 +62,7 @@ class DatabaseHandler:
         except Exception as e:
             return {"error": str(e)}
 
-    def migrate(
-        self, path: str, environment: str = "local", dry_run: bool = False
-    ) -> dict[str, Any]:
+    def migrate(self, path: str, environment: str = "local", dry_run: bool = False) -> dict[str, Any]:
         """Run pending migrations.
 
         Args:
@@ -205,18 +203,22 @@ class DatabaseHandler:
                 result = executor.rollback_migration(migration_name)
                 if result.success:
                     rolled_back += 1
-                    results.append({
-                        "migration": migration_name,
-                        "status": "rolled_back",
-                        "error": None,
-                    })
+                    results.append(
+                        {
+                            "migration": migration_name,
+                            "status": "rolled_back",
+                            "error": None,
+                        }
+                    )
                 else:
                     failed += 1
-                    results.append({
-                        "migration": migration_name,
-                        "status": "failed",
-                        "error": result.error,
-                    })
+                    results.append(
+                        {
+                            "migration": migration_name,
+                            "status": "failed",
+                            "error": result.error,
+                        }
+                    )
                     # Stop on first failure unless force is set
                     if not force:
                         break
@@ -276,9 +278,7 @@ class DatabaseHandler:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def history(
-        self, path: str, environment: str = "local", limit: int | None = None
-    ) -> dict[str, Any]:
+    def history(self, path: str, environment: str = "local", limit: int | None = None) -> dict[str, Any]:
         """Get migration history from the database.
 
         Args:
@@ -350,16 +350,18 @@ class DatabaseHandler:
 
                 history = []
                 for row in rows:
-                    history.append({
-                        "name": row[0],
-                        "checksum": row[1],
-                        "applied_at": row[2].isoformat() if row[2] else None,
-                        "execution_time_ms": row[3],
-                        "success": row[4],
-                        "applied_by": row[5],
-                        "applied_from": row[6],
-                        "rolled_back_at": row[7].isoformat() if row[7] else None,
-                    })
+                    history.append(
+                        {
+                            "name": row[0],
+                            "checksum": row[1],
+                            "applied_at": row[2].isoformat() if row[2] else None,
+                            "execution_time_ms": row[3],
+                            "success": row[4],
+                            "applied_by": row[5],
+                            "applied_from": row[6],
+                            "rolled_back_at": row[7].isoformat() if row[7] else None,
+                        }
+                    )
 
                 conn.close()
 

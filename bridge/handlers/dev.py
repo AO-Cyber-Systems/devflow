@@ -31,9 +31,7 @@ class DevHandler:
 
             if compose_file.exists():
                 # Get running containers
-                containers = self._docker.compose_ps(
-                    compose_file=str(compose_file), project_dir=str(project_path)
-                )
+                containers = self._docker.compose_ps(compose_file=str(compose_file), project_dir=str(project_path))
 
                 for container in containers:
                     services.append(
@@ -49,16 +47,12 @@ class DevHandler:
             return {
                 "project": config.project.name,
                 "services": services,
-                "infrastructure_connected": config.infrastructure.enabled
-                if config.infrastructure
-                else False,
+                "infrastructure_connected": config.infrastructure.enabled if config.infrastructure else False,
             }
         except Exception as e:
             return {"error": str(e)}
 
-    def start(
-        self, path: str, service: str | None = None, detach: bool = True
-    ) -> dict[str, Any]:
+    def start(self, path: str, service: str | None = None, detach: bool = True) -> dict[str, Any]:
         """Start development environment."""
         try:
             project_path = Path(path).resolve()
@@ -145,9 +139,7 @@ class DevHandler:
 
             return {
                 "success": success,
-                "message": f"Service {service} restarted"
-                if success
-                else f"Failed to restart {service}",
+                "message": f"Service {service} restarted" if success else f"Failed to restart {service}",
             }
         except Exception as e:
             return {"success": False, "error": str(e)}

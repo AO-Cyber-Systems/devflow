@@ -28,9 +28,7 @@ class DeployHandler:
         """
         return f"{stack}_{service}"
 
-    def _build_image_tag(
-        self, registry: str | None, org: str | None, image: str
-    ) -> str:
+    def _build_image_tag(self, registry: str | None, org: str | None, image: str) -> str:
         """Build full image tag.
 
         Args:
@@ -67,9 +65,7 @@ class DeployHandler:
                     continue
         return services
 
-    def status(
-        self, path: str, environment: str, service: str | None = None
-    ) -> dict[str, Any]:
+    def status(self, path: str, environment: str, service: str | None = None) -> dict[str, Any]:
         """Get deployment status.
 
         Args:
@@ -273,9 +269,7 @@ class DeployHandler:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def rollback(
-        self, path: str, environment: str, service: str | None = None
-    ) -> dict[str, Any]:
+    def rollback(self, path: str, environment: str, service: str | None = None) -> dict[str, Any]:
         """Rollback deployment.
 
         Args:
@@ -444,9 +438,7 @@ class DeployHandler:
         except Exception as e:
             return {"error": str(e)}
 
-    def ssh_command(
-        self, path: str, environment: str, node: str | None = None
-    ) -> dict[str, Any]:
+    def ssh_command(self, path: str, environment: str, node: str | None = None) -> dict[str, Any]:
         """Get SSH command for environment.
 
         Args:
