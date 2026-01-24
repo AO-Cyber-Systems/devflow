@@ -86,7 +86,9 @@ class TestInfrastructureProvider:
     def test_certs_dir(self) -> None:
         """Test certificates directory path."""
         provider = InfrastructureProvider()
-        assert provider.certs_dir == PathHandler.get_devflow_home() / "certs"
+        # Note: certs_dir uses config.certificates.cert_dir which defaults to "~/.devflow/certs"
+        # This is expanded via expanduser(), not using the platform-aware PathHandler
+        assert provider.certs_dir == Path.home() / ".devflow" / "certs"
 
     def test_projects_file(self) -> None:
         """Test projects file path."""
