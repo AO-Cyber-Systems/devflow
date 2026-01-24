@@ -7,10 +7,13 @@ import yaml
 from pydantic import BaseModel, Field
 from rich.console import Console
 
+from devflow.core.paths import get_devflow_home
+
 console = Console()
 
 
-DEVFLOW_HOME = Path.home() / ".devflow"
+# Use platform-aware path for DevFlow home directory
+DEVFLOW_HOME = get_devflow_home()
 GLOBAL_CONFIG_PATH = DEVFLOW_HOME / "config.yml"
 
 
@@ -318,11 +321,25 @@ def find_config_file() -> Path | None:
     return None
 
 
-def load_project_config() -> DevflowConfig | None:
-    """Load project configuration from devflow.yml."""
-    config_path = find_config_file()
-    if not config_path:
-        return None
+def load_project_config(project_path: Path | None = None) -> DevflowConfig | None:
+    """Load project configuration from devflow.yml.
+
+    Args:
+        project_path: Optional path to the project directory. If provided,
+                      looks for devflow.yml in that directory. Otherwise,
+                      searches from current directory upward.
+
+    Returns:
+        DevflowConfig if found, None otherwise.
+    """
+    if project_path:
+        config_path = Path(project_path) / "devflow.yml"
+        if not config_path.exists():
+            return None
+    else:
+        config_path = find_config_file()
+        if not config_path:
+            return None
 
     with open(config_path) as f:
         raw_config = yaml.safe_load(f)
