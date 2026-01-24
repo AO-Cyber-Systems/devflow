@@ -125,7 +125,9 @@ impl TcpRpcClient {
             })?,
             self.connect_timeout,
         )
-        .map_err(|e| TcpRpcError::ConnectionFailed(format!("Failed to connect to {}: {}", addr, e)))?;
+        .map_err(|e| {
+            TcpRpcError::ConnectionFailed(format!("Failed to connect to {}: {}", addr, e))
+        })?;
 
         // Set TCP options
         stream.set_nodelay(true)?;

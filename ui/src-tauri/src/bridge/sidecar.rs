@@ -164,7 +164,11 @@ impl BridgeManager {
     }
 
     /// Start the bridge in subprocess mode.
-    fn start_subprocess(&self, bridge_module: &str, working_dir: Option<&str>) -> Result<(), BridgeError> {
+    fn start_subprocess(
+        &self,
+        bridge_module: &str,
+        working_dir: Option<&str>,
+    ) -> Result<(), BridgeError> {
         let mut state = self.state.lock().unwrap();
         if *state == BridgeState::Running {
             return Ok(());
@@ -260,7 +264,11 @@ impl BridgeManager {
         let tcp_config = config.as_ref().cloned().unwrap_or_default();
         drop(config);
 
-        log::info!("Connecting to DevFlow service at {}:{}", tcp_config.host, tcp_config.port);
+        log::info!(
+            "Connecting to DevFlow service at {}:{}",
+            tcp_config.host,
+            tcp_config.port
+        );
 
         // Connect TCP client
         self.tcp_client

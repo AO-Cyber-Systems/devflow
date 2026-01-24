@@ -182,11 +182,7 @@ pub fn setup_dev(
     bridge: State<Arc<BridgeManager>>,
     project_path: String,
 ) -> CommandResponse<Value> {
-    match bridge_call(
-        &bridge,
-        "dev.setup",
-        Some(json!({ "path": project_path })),
-    ) {
+    match bridge_call(&bridge, "dev.setup", Some(json!({ "path": project_path }))) {
         Ok(data) => CommandResponse::ok(data),
         Err(e) => CommandResponse::err(e),
     }

@@ -15,7 +15,11 @@ pub enum RpcError {
     Json(#[from] serde_json::Error),
 
     #[error("RPC error {code}: {message}")]
-    Rpc { code: i64, message: String, data: Option<Value> },
+    Rpc {
+        code: i64,
+        message: String,
+        data: Option<Value>,
+    },
 
     #[error("Bridge not connected")]
     NotConnected,
@@ -188,7 +192,8 @@ mod tests {
 
     #[test]
     fn test_rpc_response_deserialization_error() {
-        let json = r#"{"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}"#;
+        let json =
+            r#"{"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}"#;
         let response: RpcResponse = serde_json::from_str(json).unwrap();
         assert!(response.result.is_none());
         assert!(response.error.is_some());
