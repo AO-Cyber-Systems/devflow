@@ -19,6 +19,9 @@ class DevHandler:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
 
+            if not config:
+                return {"error": "No devflow.yml configuration found"}
+
             if not config.development:
                 return {"error": "No development configuration found"}
 
@@ -61,6 +64,9 @@ class DevHandler:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
 
+            if not config:
+                return {"success": False, "error": "No devflow.yml configuration found"}
+
             if not config.development:
                 return {"success": False, "error": "No development configuration found"}
 
@@ -94,6 +100,9 @@ class DevHandler:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
 
+            if not config:
+                return {"success": False, "error": "No devflow.yml configuration found"}
+
             if not config.development:
                 return {"success": False, "error": "No development configuration found"}
 
@@ -120,6 +129,9 @@ class DevHandler:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
 
+            if not config:
+                return {"success": False, "error": "No devflow.yml configuration found"}
+
             if not config.development:
                 return {"success": False, "error": "No development configuration found"}
 
@@ -141,12 +153,31 @@ class DevHandler:
             return {"success": False, "error": str(e)}
 
     def logs(
-        self, path: str, service: str, tail: int | None = None, follow: bool = False
+        self,
+        path: str,
+        service: str,
+        tail: int | None = None,
+        follow: bool = False,
+        since: str | None = None,
     ) -> dict[str, Any]:
-        """Get service logs."""
+        """Get service logs.
+
+        Args:
+            path: Project path
+            service: Service name
+            tail: Number of lines to return
+            follow: Follow log output (not recommended for RPC)
+            since: Show logs since timestamp (e.g., "2021-01-01T00:00:00Z" or "10m")
+
+        Returns:
+            Dict with log output and last_timestamp for polling
+        """
         try:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
+
+            if not config:
+                return {"error": "No devflow.yml configuration found"}
 
             if not config.development:
                 return {"error": "No development configuration found"}
@@ -159,9 +190,32 @@ class DevHandler:
                 services=[service],
                 tail=tail or 100,
                 follow=follow,
+                since=since,
             )
 
-            return {"service": service, "logs": logs}
+            # Extract last timestamp for polling
+            last_timestamp = None
+            log_lines = logs.strip().split("\n") if logs else []
+            if log_lines:
+                # Docker compose log format may vary
+                # Try to extract timestamp from last line
+                last_line = log_lines[-1]
+                if last_line and "|" in last_line:
+                    # Format: "service-1  | timestamp message"
+                    parts = last_line.split("|", 1)
+                    if len(parts) > 1:
+                        msg = parts[1].strip()
+                        # Check for ISO timestamp at start
+                        if msg and "T" in msg[:30] and "Z" in msg[:30]:
+                            ts_parts = msg.split(" ", 1)
+                            if ts_parts:
+                                last_timestamp = ts_parts[0]
+
+            return {
+                "service": service,
+                "logs": logs,
+                "last_timestamp": last_timestamp,
+            }
         except Exception as e:
             return {"error": str(e)}
 
@@ -170,6 +224,9 @@ class DevHandler:
         try:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
+
+            if not config:
+                return {"success": False, "error": "No devflow.yml configuration found"}
 
             if not config.development:
                 return {"success": False, "error": "No development configuration found"}
@@ -197,6 +254,9 @@ class DevHandler:
         try:
             project_path = Path(path).resolve()
             config = load_project_config(project_path)
+
+            if not config:
+                return {"success": False, "error": "No devflow.yml configuration found"}
 
             if not config.development:
                 return {"success": False, "error": "No development configuration found"}

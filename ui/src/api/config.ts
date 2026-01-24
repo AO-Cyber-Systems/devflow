@@ -4,6 +4,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import type { CommandResponse, DevflowConfig, GlobalConfig } from '../types';
+export type { DevflowConfig, GlobalConfig } from '../types';
 
 export async function getGlobalConfig(): Promise<GlobalConfig> {
   const response = await invoke<CommandResponse<GlobalConfig>>('get_global_config');
