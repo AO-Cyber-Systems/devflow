@@ -1,0 +1,26 @@
+[Unit]
+Description=DevFlow Development Service
+Documentation=https://github.com/AO-Cyber-Systems/devflow
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m devflow.service.main --host 0.0.0.0 --port 9876
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+
+# Allow access to Docker socket
+ReadWritePaths=/var/run/docker.sock
+
+[Install]
+WantedBy=multi-user.target
