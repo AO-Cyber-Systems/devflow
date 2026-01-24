@@ -5,7 +5,9 @@ import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 
+from devflow.core.paths import get_ssh_dir
 from devflow.providers.base import Provider
 
 
@@ -60,6 +62,41 @@ class SSHProvider(Provider):
     def is_authenticated(self) -> bool:
         """Check if SSH is available (no authentication check needed for SSH)."""
         return self.is_available()
+
+    def get_ssh_dir(self) -> Path:
+        """Get SSH directory for current platform.
+
+        Returns:
+            Path to the SSH configuration directory.
+        """
+        return get_ssh_dir()
+
+    def get_ssh_key_path(self, key_name: str = "id_rsa") -> Path:
+        """Get SSH key path for current platform.
+
+        Args:
+            key_name: Name of the SSH key file.
+
+        Returns:
+            Path to the SSH key file.
+        """
+        return self.get_ssh_dir() / key_name
+
+    def get_known_hosts_path(self) -> Path:
+        """Get known_hosts file path for current platform.
+
+        Returns:
+            Path to the known_hosts file.
+        """
+        return self.get_ssh_dir() / "known_hosts"
+
+    def get_ssh_config_path(self) -> Path:
+        """Get SSH config file path for current platform.
+
+        Returns:
+            Path to the SSH config file.
+        """
+        return self.get_ssh_dir() / "config"
 
     def execute(
         self,

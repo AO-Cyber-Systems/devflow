@@ -5,6 +5,7 @@ import shutil
 import subprocess
 from typing import Any
 
+from devflow.core.platform import CURRENT_PLATFORM, Platform
 from devflow.providers.base import Provider
 
 
@@ -17,6 +18,9 @@ class OnePasswordProvider(Provider):
 
     @property
     def binary(self) -> str:
+        # On Windows, the binary has a .exe extension
+        if CURRENT_PLATFORM == Platform.WINDOWS:
+            return "op.exe"
         return "op"
 
     def is_available(self) -> bool:

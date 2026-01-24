@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 
+from devflow.core.paths import get_docker_socket
 from devflow.providers.base import Provider
 
 
@@ -36,6 +37,27 @@ class DockerProvider(Provider):
             return result.returncode == 0
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
             return False
+
+    # -------------------------------------------------------------------------
+    # Platform-Aware Socket Handling
+    # -------------------------------------------------------------------------
+
+    def get_socket_path(self) -> str:
+        """Get Docker socket path for current platform.
+
+        Returns:
+            Path to the Docker socket.
+        """
+        return get_docker_socket()
+
+    def get_socket_mount(self) -> str:
+        """Get Docker socket mount string for compose/swarm.
+
+        Returns:
+            Mount string in format 'source:target'.
+        """
+        socket = self.get_socket_path()
+        return f"{socket}:/var/run/docker.sock"
 
     # -------------------------------------------------------------------------
     # Docker Secrets
@@ -135,6 +157,33 @@ class DockerProvider(Provider):
 
         return subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
+    def service_logs_text(
+        self,
+        service_name: str,
+        tail: int = 100,
+        since: str | None = None,
+    ) -> str:
+        """Get logs from a service as text.
+
+        Args:
+            service_name: Name of the service
+            tail: Number of lines to return
+            since: Show logs since timestamp (e.g., "2021-01-01T00:00:00Z" or "10m")
+
+        Returns:
+            Log output as string
+        """
+        args = ["service", "logs", f"--tail={tail}", "--no-trunc"]
+        if since:
+            args.extend(["--since", since])
+        args.append(service_name)
+
+        try:
+            result = self.run(args, timeout=30)
+            return result.stdout
+        except subprocess.CalledProcessError:
+            return ""
+
     def service_rollback(self, service_name: str) -> bool:
         """Rollback a service to its previous version."""
         try:
@@ -171,11 +220,25 @@ class DockerProvider(Provider):
     def compose_up(
         self,
         compose_file: str = "docker-compose.yml",
+        project_dir: str | None = None,
         detach: bool = True,
         services: list[str] | None = None,
     ) -> bool:
-        """Start services with docker compose."""
-        args = ["compose", "-f", compose_file, "up"]
+        """Start services with docker compose.
+
+        Args:
+            compose_file: Path to compose file
+            project_dir: Project directory for compose context
+            detach: Run in detached mode
+            services: Specific services to start
+
+        Returns:
+            True if successful
+        """
+        args = ["compose"]
+        if project_dir:
+            args.extend(["--project-directory", project_dir])
+        args.extend(["-f", compose_file, "up"])
         if detach:
             args.append("-d")
         if services:
@@ -187,14 +250,179 @@ class DockerProvider(Provider):
         except subprocess.CalledProcessError:
             return False
 
-    def compose_down(self, compose_file: str = "docker-compose.yml", volumes: bool = False) -> bool:
-        """Stop services with docker compose."""
-        args = ["compose", "-f", compose_file, "down"]
+    def compose_down(
+        self,
+        compose_file: str = "docker-compose.yml",
+        project_dir: str | None = None,
+        volumes: bool = False,
+        services: list[str] | None = None,
+    ) -> bool:
+        """Stop services with docker compose.
+
+        Args:
+            compose_file: Path to compose file
+            project_dir: Project directory for compose context
+            volumes: Also remove volumes
+            services: Specific services to stop (if None, stops all)
+
+        Returns:
+            True if successful
+        """
+        args = ["compose"]
+        if project_dir:
+            args.extend(["--project-directory", project_dir])
+        args.extend(["-f", compose_file, "down"])
         if volumes:
             args.append("-v")
+        # Note: compose down doesn't support service filtering
 
         try:
             self.run(args, timeout=60)
             return True
         except subprocess.CalledProcessError:
             return False
+
+    def compose_ps(
+        self,
+        compose_file: str = "docker-compose.yml",
+        project_dir: str | None = None,
+    ) -> list[dict]:
+        """List compose containers.
+
+        Args:
+            compose_file: Path to compose file
+            project_dir: Project directory for compose context
+
+        Returns:
+            List of container info dicts with Service, State, Image, Ports, Health
+        """
+        args = ["compose"]
+        if project_dir:
+            args.extend(["--project-directory", project_dir])
+        args.extend(["-f", compose_file, "ps", "--format", "json"])
+
+        try:
+            result = self.run(args)
+            # Docker compose outputs JSON array or newline-delimited JSON objects
+            output = result.stdout.strip()
+            if not output:
+                return []
+
+            # Try parsing as JSON array first
+            if output.startswith("["):
+                return json.loads(output)
+
+            # Otherwise, parse newline-delimited JSON
+            lines = output.split("\n")
+            return [json.loads(line) for line in lines if line]
+        except (subprocess.CalledProcessError, json.JSONDecodeError):
+            return []
+
+    def compose_restart(
+        self,
+        compose_file: str = "docker-compose.yml",
+        project_dir: str | None = None,
+        services: list[str] | None = None,
+    ) -> bool:
+        """Restart compose services.
+
+        Args:
+            compose_file: Path to compose file
+            project_dir: Project directory for compose context
+            services: Specific services to restart
+
+        Returns:
+            True if successful
+        """
+        args = ["compose"]
+        if project_dir:
+            args.extend(["--project-directory", project_dir])
+        args.extend(["-f", compose_file, "restart"])
+        if services:
+            args.extend(services)
+
+        try:
+            self.run(args, timeout=120)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    def compose_logs(
+        self,
+        compose_file: str = "docker-compose.yml",
+        project_dir: str | None = None,
+        services: list[str] | None = None,
+        tail: int = 100,
+        follow: bool = False,
+        since: str | None = None,
+    ) -> str:
+        """Get compose service logs.
+
+        Args:
+            compose_file: Path to compose file
+            project_dir: Project directory for compose context
+            services: Specific services to get logs from
+            tail: Number of lines to show
+            follow: Follow log output (not recommended for RPC)
+            since: Show logs since timestamp (e.g., "2021-01-01T00:00:00Z" or "10m")
+
+        Returns:
+            Log output as string
+        """
+        args = ["compose"]
+        if project_dir:
+            args.extend(["--project-directory", project_dir])
+        args.extend(["-f", compose_file, "logs", f"--tail={tail}"])
+        if since:
+            args.extend(["--since", since])
+        if follow:
+            args.append("-f")
+        if services:
+            args.extend(services)
+
+        try:
+            result = self.run(args, timeout=30)
+            return result.stdout
+        except subprocess.CalledProcessError:
+            return ""
+
+    def compose_run(
+        self,
+        compose_file: str = "docker-compose.yml",
+        project_dir: str | None = None,
+        service: str = "",
+        command: list[str] | None = None,
+        remove: bool = True,
+        no_deps: bool = True,
+    ) -> subprocess.CompletedProcess:
+        """Run a one-off command in a compose service.
+
+        Args:
+            compose_file: Path to compose file
+            project_dir: Project directory for compose context
+            service: Service to run command in
+            command: Command to run
+            remove: Remove container after run
+            no_deps: Don't start linked services
+
+        Returns:
+            CompletedProcess with stdout, stderr, returncode
+        """
+        args = [self.binary, "compose"]
+        if project_dir:
+            args.extend(["--project-directory", project_dir])
+        args.extend(["-f", compose_file, "run"])
+        if remove:
+            args.append("--rm")
+        if no_deps:
+            args.append("--no-deps")
+        args.append(service)
+        if command:
+            args.extend(command)
+
+        return subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )

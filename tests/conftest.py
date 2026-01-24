@@ -4,8 +4,12 @@ import os
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
+import pytest_asyncio
+
+from devflow.core.platform import Platform
 
 
 @pytest.fixture
@@ -73,3 +77,68 @@ def migrations_dir(temp_dir: Path) -> Path:
     (migrations / "20240103000000_add_index.sql").write_text("CREATE INDEX idx_users_email ON users(email);")
 
     return migrations
+
+
+# =============================================================================
+# Platform Mocking Fixtures
+# =============================================================================
+
+
+@pytest.fixture
+def mock_linux():
+    """Mock Linux platform for testing."""
+    with patch("devflow.core.platform.CURRENT_PLATFORM", Platform.LINUX):
+        with patch("devflow.core.paths.CURRENT_PLATFORM", Platform.LINUX):
+            yield Platform.LINUX
+
+
+@pytest.fixture
+def mock_macos():
+    """Mock macOS platform for testing."""
+    with patch("devflow.core.platform.CURRENT_PLATFORM", Platform.MACOS):
+        with patch("devflow.core.paths.CURRENT_PLATFORM", Platform.MACOS):
+            yield Platform.MACOS
+
+
+@pytest.fixture
+def mock_windows():
+    """Mock Windows platform for testing."""
+    with patch("devflow.core.platform.CURRENT_PLATFORM", Platform.WINDOWS):
+        with patch("devflow.core.paths.CURRENT_PLATFORM", Platform.WINDOWS):
+            yield Platform.WINDOWS
+
+
+@pytest.fixture
+def mock_wsl2():
+    """Mock WSL2 platform for testing."""
+    with patch("devflow.core.platform.CURRENT_PLATFORM", Platform.WSL2):
+        with patch("devflow.core.paths.CURRENT_PLATFORM", Platform.WSL2):
+            yield Platform.WSL2
+
+
+# =============================================================================
+# TCP Server Fixtures
+# =============================================================================
+
+
+@pytest_asyncio.fixture
+async def tcp_server():
+    """Create a test TCP server on a random port."""
+    from devflow.service.server import DevFlowServer
+
+    server = DevFlowServer(host="127.0.0.1", port=0)
+    await server.start_background()
+    yield server
+    server.stop()
+
+
+@pytest_asyncio.fixture
+async def tcp_client(tcp_server):
+    """Create a connected TCP client to the test server."""
+    import asyncio
+
+    host, port = tcp_server.get_address()
+    reader, writer = await asyncio.open_connection(host, port)
+    yield (reader, writer)
+    writer.close()
+    await writer.wait_closed()

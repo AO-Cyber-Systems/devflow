@@ -5,6 +5,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from devflow.core.paths import PathHandler
+from devflow.core.platform import CURRENT_PLATFORM, Platform
 from devflow.providers.base import Provider
 
 
@@ -17,11 +19,28 @@ class MkcertProvider(Provider):
 
     @property
     def binary(self) -> str:
+        # On Windows, the binary may have .exe extension
+        if CURRENT_PLATFORM == Platform.WINDOWS:
+            return "mkcert.exe"
         return "mkcert"
 
     def is_available(self) -> bool:
         """Check if mkcert is installed."""
-        return shutil.which(self.binary) is not None
+        # Try with and without .exe on Windows
+        if shutil.which(self.binary) is not None:
+            return True
+        # Fallback for Windows if .exe wasn't found explicitly
+        if CURRENT_PLATFORM == Platform.WINDOWS:
+            return shutil.which("mkcert") is not None
+        return False
+
+    def get_default_cert_dir(self) -> Path:
+        """Get the default certificate directory for current platform.
+
+        Returns:
+            Path to the platform-appropriate certificate directory.
+        """
+        return PathHandler.get_cert_dir()
 
     def is_authenticated(self) -> bool:
         """Check if mkcert CA is installed in the system trust store."""

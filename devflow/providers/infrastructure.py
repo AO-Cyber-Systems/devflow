@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from devflow.core.config import InfrastructureConfig
+from devflow.core.paths import get_devflow_home, get_docker_socket, get_hosts_file
 from devflow.providers.docker import DockerProvider
 from devflow.providers.mkcert import MkcertProvider
 
@@ -62,7 +63,8 @@ class RegisteredProject:
 class InfrastructureProvider:
     """Manages shared Docker infrastructure for local development."""
 
-    DEVFLOW_HOME = Path.home() / ".devflow"
+    # Use platform-aware path for DevFlow home
+    DEVFLOW_HOME = get_devflow_home()
     TRAEFIK_CONTAINER_NAME = "devflow-traefik"
     PROJECTS_FILE = "projects.json"
 
@@ -444,7 +446,7 @@ class InfrastructureProvider:
                 "-p",
                 f"{self.config.traefik.dashboard_port}:8080",
                 "-v",
-                "/var/run/docker.sock:/var/run/docker.sock",
+                f"{get_docker_socket()}:/var/run/docker.sock",
                 "-v",
                 "devflow-traefik-config:/etc/traefik:ro",
                 "-v",
@@ -746,13 +748,14 @@ tls:
     # -------------------------------------------------------------------------
 
     def get_hosts_entries(self) -> list[str]:
-        """Get devflow-related entries from /etc/hosts.
+        """Get devflow-related entries from hosts file.
 
         Returns:
             List of devflow-managed host entries
         """
+        hosts_file = get_hosts_file()
         try:
-            with open("/etc/hosts") as f:
+            with open(hosts_file) as f:
                 lines = f.readlines()
 
             # Find entries with devflow marker
@@ -773,9 +776,10 @@ tls:
             return []
 
     def add_hosts_entries(self, domains: list[str]) -> InfraResult:
-        """Add domains to /etc/hosts.
+        """Add domains to the system hosts file.
 
-        Note: This requires sudo/root access.
+        Note: This requires sudo/root access on Unix-like systems,
+        or Administrator access on Windows.
 
         Args:
             domains: List of domains to add
@@ -783,6 +787,8 @@ tls:
         Returns:
             InfraResult indicating success or failure
         """
+        hosts_file = get_hosts_file()
+
         # Generate hosts entries
         entries = [f"127.0.0.1 {domain}" for domain in domains if not domain.startswith("*")]
 
@@ -798,10 +804,10 @@ tls:
 
         # Read current hosts file
         try:
-            with open("/etc/hosts") as f:
+            with open(hosts_file) as f:
                 content = f.read()
         except OSError as e:
-            return InfraResult(False, f"Cannot read /etc/hosts: {e}")
+            return InfraResult(False, f"Cannot read {hosts_file}: {e}")
 
         # Check if devflow section exists
         if "# devflow-managed-start" in content:
@@ -827,29 +833,30 @@ tls:
 
         content = content.rstrip() + section
 
-        # Write back - this typically requires sudo
+        # Write back - this typically requires sudo/admin access
         try:
-            with open("/etc/hosts", "w") as f:
+            with open(hosts_file, "w") as f:
                 f.write(content)
             return InfraResult(True, f"Added {len(entries)} hosts entries")
         except PermissionError:
             # Return instructions for manual update
             return InfraResult(
                 False,
-                "Permission denied. Run with sudo or manually add to /etc/hosts:\n" + section,
+                f"Permission denied. Run with elevated privileges or manually add to {hosts_file}:\n" + section,
                 {"entries": entries},
             )
         except OSError as e:
-            return InfraResult(False, f"Failed to write /etc/hosts: {e}")
+            return InfraResult(False, f"Failed to write {hosts_file}: {e}")
 
     def remove_hosts_entries(self) -> InfraResult:
-        """Remove devflow-managed entries from /etc/hosts.
+        """Remove devflow-managed entries from the system hosts file.
 
         Returns:
             InfraResult indicating success or failure
         """
+        hosts_file = get_hosts_file()
         try:
-            with open("/etc/hosts") as f:
+            with open(hosts_file) as f:
                 content = f.read()
 
             if "# devflow-managed-start" not in content:
@@ -871,10 +878,10 @@ tls:
 
             content = "\n".join(new_lines)
 
-            with open("/etc/hosts", "w") as f:
+            with open(hosts_file, "w") as f:
                 f.write(content)
             return InfraResult(True, "Devflow hosts entries removed")
         except PermissionError:
-            return InfraResult(False, "Permission denied. Run with sudo to modify /etc/hosts")
+            return InfraResult(False, f"Permission denied. Run with elevated privileges to modify {hosts_file}")
         except OSError as e:
-            return InfraResult(False, f"Failed to modify /etc/hosts: {e}")
+            return InfraResult(False, f"Failed to modify {hosts_file}: {e}")
