@@ -1,6 +1,5 @@
 """Tests for provider implementations."""
 
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -438,8 +437,6 @@ a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0X0a0E=
     def test_token_caching(self, mock_jwt_encode: MagicMock, mock_post: MagicMock) -> None:
         """Test that installation tokens are cached and reused."""
         mock_jwt_encode.return_value = "mock_jwt_token"
-        # Set expiration far in the future
-        future_time = time.time() + 3600
         mock_post.return_value = MagicMock(
             status_code=201,
             json=lambda: {

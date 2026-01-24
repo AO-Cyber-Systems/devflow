@@ -3,7 +3,8 @@
 import json
 import logging
 import sys
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .types import ErrorCodes, RpcError, RpcRequest, RpcResponse
 

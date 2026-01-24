@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from devflow.core.config import load_project_config, load_global_config, InfrastructureConfig
+from devflow.core.config import InfrastructureConfig, load_global_config, load_project_config
 from devflow.providers.infrastructure import InfrastructureProvider
 
 

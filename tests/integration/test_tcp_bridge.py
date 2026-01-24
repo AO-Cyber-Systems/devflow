@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 import pytest_asyncio
@@ -13,15 +13,15 @@ from devflow.service.server import DevFlowServer
 class MockHandler:
     """Mock handler for testing."""
 
-    def ping(self) -> Dict[str, Any]:
+    def ping(self) -> dict[str, Any]:
         """Simple ping method."""
         return {"pong": True}
 
-    def echo(self, message: str) -> Dict[str, Any]:
+    def echo(self, message: str) -> dict[str, Any]:
         """Echo back the message."""
         return {"message": message}
 
-    def add(self, a: int, b: int) -> Dict[str, Any]:
+    def add(self, a: int, b: int) -> dict[str, Any]:
         """Add two numbers."""
         return {"result": a + b}
 
@@ -56,9 +56,9 @@ async def send_request(
     writer: asyncio.StreamWriter,
     reader: asyncio.StreamReader,
     method: str,
-    params: Dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
     request_id: int = 1,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Send a JSON-RPC request and get response."""
     request = {
         "jsonrpc": "2.0",
@@ -187,7 +187,7 @@ async def test_register_method_directly():
     """Test registering a method directly."""
     server = DevFlowServer(host="127.0.0.1", port=0)
 
-    def custom_method(x: int) -> Dict[str, int]:
+    def custom_method(x: int) -> dict[str, int]:
         return {"squared": x * x}
 
     server.register_method("math.square", custom_method)

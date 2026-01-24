@@ -1,9 +1,6 @@
 """Tests for deploy bridge handler."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 
 class TestDeployHandlerStatus:

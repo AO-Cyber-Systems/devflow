@@ -7,7 +7,8 @@ backend running in WSL2 via TCP instead of stdio.
 import asyncio
 import json
 import logging
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +32,8 @@ class DevFlowServer:
         """
         self.host = host
         self.port = port
-        self.handlers: Dict[str, Callable[..., Any]] = {}
-        self._server: Optional[asyncio.AbstractServer] = None
+        self.handlers: dict[str, Callable[..., Any]] = {}
+        self._server: asyncio.AbstractServer | None = None
         self._running = False
 
     def register_handler(self, handler: object, prefix: str = "") -> None:
@@ -120,7 +121,7 @@ class DevFlowServer:
                 pass
             logger.info(f"Client disconnected: {addr}")
 
-    async def _process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def _process_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Process a JSON-RPC request and return a response.
 
         Args:

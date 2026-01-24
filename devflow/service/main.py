@@ -13,8 +13,6 @@ import argparse
 import asyncio
 import logging
 import signal
-import sys
-from typing import Optional
 
 from devflow.service.server import DevFlowServer
 
@@ -69,7 +67,7 @@ def run_server(host: str = "127.0.0.1", port: int = 9876) -> None:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    def shutdown_handler(sig: signal.Signals, frame: Optional[object]) -> None:
+    def shutdown_handler(sig: signal.Signals, frame: object | None) -> None:
         logger.info(f"Received signal {sig.name}, shutting down...")
         server.stop()
         loop.stop()

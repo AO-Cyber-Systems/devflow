@@ -4,8 +4,6 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from devflow.core.platform import Platform
 from devflow.providers.mkcert import MkcertProvider
 

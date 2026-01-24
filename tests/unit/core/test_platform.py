@@ -1,7 +1,5 @@
 """Tests for platform detection and abstraction."""
 
-import platform
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest

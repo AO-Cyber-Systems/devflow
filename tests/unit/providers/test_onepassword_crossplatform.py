@@ -2,8 +2,6 @@
 
 from unittest.mock import patch
 
-import pytest
-
 from devflow.core.platform import Platform
 from devflow.providers.onepassword import OnePasswordProvider
 

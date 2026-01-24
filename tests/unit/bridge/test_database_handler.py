@@ -1,10 +1,7 @@
 """Tests for database bridge handler."""
 
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 
 class TestDatabaseHandlerStatus:

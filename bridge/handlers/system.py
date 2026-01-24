@@ -1,7 +1,6 @@
 """System RPC handlers - doctor, info, and utilities."""
 
 import platform
-import sys
 from pathlib import Path
 from typing import Any
 

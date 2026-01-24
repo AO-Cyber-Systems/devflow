@@ -7,7 +7,7 @@ from typing import Any
 
 from devflow.core.config import load_project_config
 from devflow.providers.docker import DockerProvider
-from devflow.providers.github import GitHubProvider, GitHubAppProvider, resolve_github_app_config
+from devflow.providers.github import GitHubAppProvider, GitHubProvider, resolve_github_app_config
 from devflow.providers.onepassword import OnePasswordProvider
 
 

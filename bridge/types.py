@@ -1,6 +1,6 @@
 """Type definitions for the bridge server."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 

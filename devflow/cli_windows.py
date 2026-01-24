@@ -11,7 +11,6 @@ Usage:
 
 import subprocess
 import sys
-from typing import List, Optional
 
 
 def check_wsl_available() -> bool:
@@ -31,7 +30,7 @@ def check_wsl_available() -> bool:
         return False
 
 
-def get_wsl_distros() -> List[str]:
+def get_wsl_distros() -> list[str]:
     """Get list of available WSL distributions.
 
     Returns:
@@ -55,7 +54,7 @@ def get_wsl_distros() -> List[str]:
         return []
 
 
-def get_default_distro() -> Optional[str]:
+def get_default_distro() -> str | None:
     """Get the default WSL distribution.
 
     Returns:
@@ -67,7 +66,7 @@ def get_default_distro() -> Optional[str]:
     return None
 
 
-def find_devflow_distro() -> Optional[str]:
+def find_devflow_distro() -> str | None:
     """Find a WSL distribution with DevFlow installed.
 
     Checks common distributions in order of preference:
@@ -120,7 +119,7 @@ def check_devflow_installed(distro: str) -> bool:
         return False
 
 
-def run_in_wsl(args: List[str], distro: Optional[str] = None) -> int:
+def run_in_wsl(args: list[str], distro: str | None = None) -> int:
     """Run devflow command in WSL2.
 
     Args:

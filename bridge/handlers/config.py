@@ -5,7 +5,7 @@ from typing import Any
 
 import yaml
 
-from devflow.core.config import DevflowConfig, GlobalConfig, load_project_config, load_global_config
+from devflow.core.config import DevflowConfig, load_global_config, load_project_config
 
 
 class ConfigHandler:
