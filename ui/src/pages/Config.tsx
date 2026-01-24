@@ -77,45 +77,6 @@ export function Config() {
   }, [isConnected, activeTab, activeProject]);
 
   const handleSave = async () => {
-    setLoading(true);
-    setValidationErrors([]);
-    setValidationWarnings([]);
-    try {
-      let config;
-      if (activeTab === 'global') {
-        config = await getGlobalConfig();
-      } else {
-        if (!activeProject) {
-          setConfigContent('# No project selected\n# Select a project from the sidebar to edit its configuration.');
-          setOriginalContent('');
-          setLoading(false);
-          return;
-        }
-        config = await getProjectConfig(activeProject.path);
-      }
-      const yamlContent = yaml.dump(config, {
-        indent: 2,
-        lineWidth: 120,
-        noRefs: true,
-        sortKeys: false,
-      });
-      setConfigContent(yamlContent);
-      setOriginalContent(yamlContent);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      addNotification({
-        type: 'error',
-        title: `Failed to load ${activeTab} config`,
-        message,
-      });
-      setConfigContent(`# Error loading configuration\n# ${message}`);
-      setOriginalContent('');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
     setSaving(true);
     try {
       // Parse YAML to validate it

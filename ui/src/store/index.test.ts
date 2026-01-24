@@ -55,26 +55,44 @@ describe('useAppStore', () => {
   });
 
   describe('Global Config', () => {
+    const mockGlobalConfig = {
+      version: '1.0',
+      git: {
+        user_name: 'Test User',
+        user_email: 'test@example.com',
+        co_author_enabled: false,
+        co_author_name: 'Claude',
+        co_author_email: 'claude@anthropic.com',
+      },
+      defaults: {
+        secrets_provider: null,
+        network_name: 'devflow-net',
+        registry: null,
+      },
+      infrastructure: {
+        auto_start: true,
+        traefik_http_port: 80,
+        traefik_https_port: 443,
+        traefik_dashboard_port: 8080,
+      },
+      setup_completed: true,
+    };
+
     it('should have initial global config as null', () => {
       expect(useAppStore.getState().globalConfig).toBeNull();
     });
 
     it('should set global config', () => {
-      const config = {
-        bridge_port: 9876,
-        default_project: '/path/to/project',
-      };
-
       act(() => {
-        useAppStore.getState().setGlobalConfig(config);
+        useAppStore.getState().setGlobalConfig(mockGlobalConfig);
       });
 
-      expect(useAppStore.getState().globalConfig).toEqual(config);
+      expect(useAppStore.getState().globalConfig).toEqual(mockGlobalConfig);
     });
 
     it('should clear global config', () => {
       act(() => {
-        useAppStore.getState().setGlobalConfig({ bridge_port: 9876 });
+        useAppStore.getState().setGlobalConfig(mockGlobalConfig);
         useAppStore.getState().setGlobalConfig(null);
       });
 
@@ -86,6 +104,8 @@ describe('useAppStore', () => {
     const mockProject = {
       path: '/path/to/project',
       name: 'Test Project',
+      configured_at: '2024-01-01T00:00:00Z',
+      last_accessed: '2024-01-01T00:00:00Z',
     };
 
     it('should have initial projects as empty array', () => {
@@ -112,9 +132,16 @@ describe('useAppStore', () => {
     });
 
     it('should remove a project by path', () => {
+      const anotherProject = {
+        path: '/another/project',
+        name: 'Another',
+        configured_at: '2024-01-01T00:00:00Z',
+        last_accessed: '2024-01-01T00:00:00Z',
+      };
+
       act(() => {
         useAppStore.getState().addProject(mockProject);
-        useAppStore.getState().addProject({ path: '/another/project', name: 'Another' });
+        useAppStore.getState().addProject(anotherProject);
         useAppStore.getState().removeProject('/path/to/project');
       });
 
@@ -128,7 +155,13 @@ describe('useAppStore', () => {
       path: '/path/to/project',
       config: {
         version: '1',
-        project: { name: 'Test Project' },
+        project: { name: 'Test Project', preset: null },
+        database: null,
+        secrets: null,
+        deployment: null,
+        development: null,
+        infrastructure: null,
+        git: null,
       },
     };
 
@@ -211,13 +244,13 @@ describe('useAppStore', () => {
 
     it('should remove notification by id', () => {
       vi.mocked(crypto.randomUUID)
-        .mockReturnValueOnce('uuid-1')
-        .mockReturnValueOnce('uuid-2');
+        .mockReturnValueOnce('11111111-1111-1111-1111-111111111111')
+        .mockReturnValueOnce('22222222-2222-2222-2222-222222222222');
 
       act(() => {
         useAppStore.getState().addNotification({ type: 'info', title: 'First' });
         useAppStore.getState().addNotification({ type: 'info', title: 'Second' });
-        useAppStore.getState().removeNotification('uuid-1');
+        useAppStore.getState().removeNotification('11111111-1111-1111-1111-111111111111');
       });
 
       const notifications = useAppStore.getState().notifications;
@@ -251,9 +284,14 @@ describe('useAppStore', () => {
 
   describe('Infrastructure Status', () => {
     const mockInfraStatus = {
-      running: true,
-      traefik_healthy: true,
       network_exists: true,
+      network_name: 'devflow-net',
+      traefik_running: true,
+      traefik_container_id: 'abc123',
+      traefik_url: 'http://localhost:8080',
+      certificates_valid: true,
+      certificates_path: '/path/to/certs',
+      registered_projects: [],
     };
 
     it('should have initial infra status as null', () => {
