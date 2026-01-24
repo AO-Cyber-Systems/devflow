@@ -11,6 +11,17 @@ A comprehensive CLI tool for managing local development environments, database m
 - **Database Migrations** - Apply, rollback, and track migrations with proper locking across local, staging, and production
 - **Secrets Management** - Sync secrets from 1Password to GitHub Actions and Docker Swarm
 - **Deployment** - Deploy to Docker Swarm clusters with rolling updates, health checks, and rollback support
+- **Cross-Platform** - Native support for Linux, macOS, and Windows (via WSL2)
+
+## Platform Support
+
+| Platform | CLI | Desktop UI | Notes |
+|----------|-----|------------|-------|
+| Linux | ✅ | ✅ | Native support |
+| macOS | ✅ | ✅ | Native support (Intel & Apple Silicon) |
+| Windows | ✅ | ✅ | Requires WSL2 with Ubuntu |
+
+**Windows Users**: DevFlow on Windows uses WSL2 for optimal Docker compatibility. See [Windows Setup Guide](docs/windows-setup.md) for installation instructions.
 
 ## Documentation
 
@@ -21,6 +32,7 @@ A comprehensive CLI tool for managing local development environments, database m
 | [Commands](docs/wiki/Commands.md) | Complete command reference |
 | [Use Cases](docs/wiki/Use-Cases.md) | Common workflows and scenarios |
 | [Providers](docs/wiki/Providers.md) | External tool integrations |
+| [Windows Setup](docs/windows-setup.md) | Windows installation with WSL2 |
 
 ## Quick Start
 
