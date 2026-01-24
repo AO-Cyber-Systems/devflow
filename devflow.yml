@@ -1,0 +1,31 @@
+# DevFlow Self-Test Configuration
+version: "1"
+
+project:
+  name: devflow
+  preset: custom
+
+database:
+  migrations:
+    directory: tests/fixtures/migrations
+    format: sql
+    tracking_table: schema_migrations
+    tracking_schema: public
+
+  environments:
+    local:
+      url_env: DATABASE_URL
+
+secrets:
+  provider: 1password
+  vault: AOCyber
+  mappings:
+    - name: test-secret
+      op_item: "DevFlow Test"
+      op_field: password
+      github_secret: TEST_SECRET
+
+development:
+  compose_file: docker-compose.yml
+  services:
+    - app
