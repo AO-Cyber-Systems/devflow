@@ -1,5 +1,6 @@
 """Tests for provider implementations."""
 
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -83,7 +84,9 @@ class TestOnePasswordProvider:
         """Test provider name and binary."""
         provider = OnePasswordProvider()
         assert provider.name == "1password"
-        assert provider.binary == "op"
+        # Binary name is platform-specific
+        expected_binary = "op.exe" if sys.platform == "win32" else "op"
+        assert provider.binary == expected_binary
 
     def test_is_available(self) -> None:
         """Test availability check."""

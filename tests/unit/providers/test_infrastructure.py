@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from devflow.core.config import InfrastructureConfig
+from devflow.core.paths import PathHandler
 from devflow.providers.infrastructure import (
     InfraResult,
     InfraStatus,
@@ -80,17 +81,17 @@ class TestInfrastructureProvider:
     def test_infrastructure_dir(self) -> None:
         """Test infrastructure directory path."""
         provider = InfrastructureProvider()
-        assert provider.infrastructure_dir == Path.home() / ".devflow" / "infrastructure"
+        assert provider.infrastructure_dir == PathHandler.get_devflow_home() / "infrastructure"
 
     def test_certs_dir(self) -> None:
         """Test certificates directory path."""
         provider = InfrastructureProvider()
-        assert provider.certs_dir == Path.home() / ".devflow" / "certs"
+        assert provider.certs_dir == PathHandler.get_devflow_home() / "certs"
 
     def test_projects_file(self) -> None:
         """Test projects file path."""
         provider = InfrastructureProvider()
-        assert provider.projects_file == Path.home() / ".devflow" / "projects.json"
+        assert provider.projects_file == PathHandler.get_devflow_home() / "projects.json"
 
     @patch.object(InfrastructureProvider, "_network_exists")
     @patch.object(InfrastructureProvider, "_is_traefik_running")

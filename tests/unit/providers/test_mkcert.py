@@ -1,5 +1,6 @@
 """Tests for mkcert provider."""
 
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -13,7 +14,9 @@ class TestMkcertProvider:
         """Test provider name and binary."""
         provider = MkcertProvider()
         assert provider.name == "mkcert"
-        assert provider.binary == "mkcert"
+        # Binary name is platform-specific
+        expected_binary = "mkcert.exe" if sys.platform == "win32" else "mkcert"
+        assert provider.binary == expected_binary
 
     def test_is_available(self) -> None:
         """Test availability check."""
@@ -240,4 +243,6 @@ class TestMkcertProvider:
         assert "ca_installed" in status
         assert "ca_root" in status
         assert status["name"] == "mkcert"
-        assert status["binary"] == "mkcert"
+        # Binary name is platform-specific
+        expected_binary = "mkcert.exe" if sys.platform == "win32" else "mkcert"
+        assert status["binary"] == expected_binary
