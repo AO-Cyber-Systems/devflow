@@ -17,12 +17,6 @@ export function Projects() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected) {
-      loadProjects();
-    }
-  }, [isConnected]);
-
   const loadProjects = async () => {
     setLoading(true);
     try {
@@ -38,6 +32,13 @@ export function Projects() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isConnected) {
+      loadProjects();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   const handleAddProject = async () => {
     if (!newProjectPath.trim()) return;

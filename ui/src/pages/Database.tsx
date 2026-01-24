@@ -22,14 +22,6 @@ export function Database() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected && activeProject) {
-      loadStatus();
-    } else {
-      setMigrations(null);
-    }
-  }, [isConnected, activeProject, environment]);
-
   const loadStatus = async () => {
     if (!activeProject) return;
     setLoading(true);
@@ -46,6 +38,15 @@ export function Database() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isConnected && activeProject) {
+      loadStatus();
+    } else {
+      setMigrations(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, activeProject, environment]);
 
   const handleApplyMigrations = async () => {
     if (!activeProject) return;

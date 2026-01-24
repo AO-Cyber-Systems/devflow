@@ -24,14 +24,6 @@ export function Deploy() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected && activeProject) {
-      loadStatus();
-    } else {
-      setDeployStatus(null);
-    }
-  }, [isConnected, activeProject, environment]);
-
   const loadStatus = async () => {
     if (!activeProject) return;
     setLoading(true);
@@ -48,6 +40,15 @@ export function Deploy() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isConnected && activeProject) {
+      loadStatus();
+    } else {
+      setDeployStatus(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, activeProject, environment]);
 
   const handleDeploy = async (service?: string) => {
     if (!activeProject) return;

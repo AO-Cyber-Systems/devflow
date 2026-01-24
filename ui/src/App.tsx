@@ -28,10 +28,6 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { setBridgeState, setGlobalConfig, setProjects, addNotification } = useAppStore();
 
-  useEffect(() => {
-    initializeApp();
-  }, []);
-
   const initializeApp = async () => {
     setBridgeState('Starting');
 
@@ -71,6 +67,11 @@ function AppContent() {
       });
     }
   };
+
+  useEffect(() => {
+    initializeApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex h-screen bg-bg-primary text-text-primary">

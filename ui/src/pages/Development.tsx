@@ -23,20 +23,6 @@ export function Development() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected && activeProject) {
-      loadStatus();
-    } else {
-      setDevStatus(null);
-    }
-  }, [isConnected, activeProject]);
-
-  useEffect(() => {
-    if (selectedService && activeProject) {
-      loadLogs(selectedService);
-    }
-  }, [selectedService, activeProject]);
-
   const loadStatus = async () => {
     if (!activeProject) return;
     setLoading(true);
@@ -66,6 +52,22 @@ export function Development() {
       setLogsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isConnected && activeProject) {
+      loadStatus();
+    } else {
+      setDevStatus(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, activeProject]);
+
+  useEffect(() => {
+    if (selectedService && activeProject) {
+      loadLogs(selectedService);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedService, activeProject]);
 
   const handleStartAll = async () => {
     if (!activeProject) return;

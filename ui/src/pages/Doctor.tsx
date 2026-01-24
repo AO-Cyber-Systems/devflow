@@ -13,12 +13,6 @@ export function Doctor() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected) {
-      runChecks();
-    }
-  }, [isConnected]);
-
   const runChecks = async () => {
     setLoading(true);
     try {
@@ -34,6 +28,13 @@ export function Doctor() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isConnected) {
+      runChecks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   const getStatusIcon = (status: DoctorCheck['status']) => {
     switch (status) {

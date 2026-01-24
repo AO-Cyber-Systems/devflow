@@ -21,18 +21,6 @@ export function Secrets() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected) {
-      loadProviders();
-      if (activeProject) {
-        loadSecrets();
-      }
-    } else {
-      setSecrets(null);
-      setProviders([]);
-    }
-  }, [isConnected, activeProject]);
-
   const loadSecrets = async () => {
     if (!activeProject) return;
     setLoading(true);
@@ -58,6 +46,19 @@ export function Secrets() {
       console.error('Failed to load providers:', error);
     }
   };
+
+  useEffect(() => {
+    if (isConnected) {
+      loadProviders();
+      if (activeProject) {
+        loadSecrets();
+      }
+    } else {
+      setSecrets(null);
+      setProviders([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, activeProject]);
 
   const handleSync = async (from: string, to: string) => {
     if (!activeProject) return;

@@ -11,12 +11,6 @@ export function Infrastructure() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected) {
-      loadStatus();
-    }
-  }, [isConnected]);
-
   const loadStatus = async () => {
     setLoading(true);
     try {
@@ -32,6 +26,13 @@ export function Infrastructure() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isConnected) {
+      loadStatus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   const handleStart = async () => {
     try {

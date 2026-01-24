@@ -27,12 +27,6 @@ export function Dashboard() {
 
   const isConnected = bridgeState === 'Running';
 
-  useEffect(() => {
-    if (isConnected) {
-      loadData();
-    }
-  }, [isConnected]);
-
   const loadData = async () => {
     try {
       const [status, projectList] = await Promise.all([
@@ -45,6 +39,13 @@ export function Dashboard() {
       console.error('Failed to load dashboard data:', error);
     }
   };
+
+  useEffect(() => {
+    if (isConnected) {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   const handleStartInfra = async () => {
     try {
