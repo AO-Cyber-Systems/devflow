@@ -179,11 +179,25 @@ jobs:
           # Flatten Linux artifacts
           find artifacts/tauri-linux -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.AppImage.sig" \) -exec cp {} release-assets/ \; 2>/dev/null || true
 
-          # Flatten macOS Intel artifacts
-          find artifacts/tauri-macos-intel -type f \( -name "*.dmg" -o -name "*.dmg.sig" -o -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig" \) -exec cp {} release-assets/ \; 2>/dev/null || true
+          # Flatten macOS Intel artifacts (rename .app.tar.gz to include architecture)
+          find artifacts/tauri-macos-intel -type f -name "*.dmg" -exec cp {} release-assets/ \; 2>/dev/null || true
+          find artifacts/tauri-macos-intel -type f -name "*.dmg.sig" -exec cp {} release-assets/ \; 2>/dev/null || true
+          for f in $(find artifacts/tauri-macos-intel -type f -name "*.app.tar.gz" ! -name "*.sig"); do
+            cp "$f" "release-assets/DevFlow_x64.app.tar.gz"
+          done 2>/dev/null || true
+          for f in $(find artifacts/tauri-macos-intel -type f -name "*.app.tar.gz.sig"); do
+            cp "$f" "release-assets/DevFlow_x64.app.tar.gz.sig"
+          done 2>/dev/null || true
 
-          # Flatten macOS ARM artifacts
-          find artifacts/tauri-macos-arm -type f \( -name "*.dmg" -o -name "*.dmg.sig" -o -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig" \) -exec cp {} release-assets/ \; 2>/dev/null || true
+          # Flatten macOS ARM artifacts (rename .app.tar.gz to include architecture)
+          find artifacts/tauri-macos-arm -type f -name "*.dmg" -exec cp {} release-assets/ \; 2>/dev/null || true
+          find artifacts/tauri-macos-arm -type f -name "*.dmg.sig" -exec cp {} release-assets/ \; 2>/dev/null || true
+          for f in $(find artifacts/tauri-macos-arm -type f -name "*.app.tar.gz" ! -name "*.sig"); do
+            cp "$f" "release-assets/DevFlow_aarch64.app.tar.gz"
+          done 2>/dev/null || true
+          for f in $(find artifacts/tauri-macos-arm -type f -name "*.app.tar.gz.sig"); do
+            cp "$f" "release-assets/DevFlow_aarch64.app.tar.gz.sig"
+          done 2>/dev/null || true
 
           # Flatten Windows artifacts
           find artifacts/tauri-windows -type f \( -name "*.msi" -o -name "*.msi.sig" -o -name "*.exe" -o -name "*.exe.sig" \) -exec cp {} release-assets/ \; 2>/dev/null || true
@@ -213,7 +227,7 @@ jobs:
             "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "platforms": {
               "linux-x86_64": {
-                "url": "https://github.com/AO-Cyber-Systems/devflow/releases/download/v${VERSION}/devflow_${VERSION}_amd64.AppImage",
+                "url": "https://github.com/AO-Cyber-Systems/devflow/releases/download/v${VERSION}/DevFlow_${VERSION}_amd64.AppImage",
                 "signature": "${LINUX_SIG}"
               },
               "darwin-x86_64": {
