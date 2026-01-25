@@ -23,6 +23,8 @@ pub fn run() {
     tauri::Builder::default()
         .manage(bridge_manager)
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(log_plugin)
         .invoke_handler(tauri::generate_handler![
             // Bridge management
@@ -86,6 +88,24 @@ pub fn run() {
             commands::system::get_all_providers,
             commands::system::check_updates,
             commands::system::get_version,
+            // Setup / Prerequisites
+            commands::setup::get_platform_info,
+            commands::setup::get_tool_categories,
+            commands::setup::get_all_tools,
+            commands::setup::get_essential_tools,
+            commands::setup::get_tools_by_category,
+            commands::setup::get_tool,
+            commands::setup::detect_tool,
+            commands::setup::detect_all_tools,
+            commands::setup::detect_essential_tools,
+            commands::setup::get_install_methods,
+            commands::setup::install_tool,
+            commands::setup::install_multiple_tools,
+            commands::setup::check_mise_available,
+            commands::setup::get_mise_installed_tools,
+            commands::setup::get_available_installers,
+            commands::setup::get_prerequisites_summary,
+            commands::setup::refresh_platform_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -18,6 +18,8 @@ on:
 env:
   NODE_VERSION: "20"
   PYTHON_VERSION: "3.11"
+  TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
 jobs:
   build-python:
@@ -126,6 +128,7 @@ jobs:
           path: |
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage.sig
 
       - name: Upload macOS artifacts
         if: startsWith(matrix.platform, 'macos')
@@ -134,7 +137,10 @@ jobs:
           name: tauri-${{ matrix.platform }}
           path: |
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg.sig
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz.sig
 
       - name: Upload Windows artifacts
         if: matrix.platform == 'windows'
@@ -143,7 +149,9 @@ jobs:
           name: tauri-windows
           path: |
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi.sig
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe.sig
 
   release:
     name: Create Release
@@ -164,6 +172,47 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | head -50
 
+      - name: Generate latest.json for auto-updater
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+
+          # Read signature files (they contain base64 signatures)
+          LINUX_SIG=$(cat artifacts/tauri-linux/*.AppImage.sig 2>/dev/null | tr -d '\n' || echo "")
+          MACOS_INTEL_SIG=$(cat artifacts/tauri-macos-intel/*.app.tar.gz.sig 2>/dev/null | tr -d '\n' || echo "")
+          MACOS_ARM_SIG=$(cat artifacts/tauri-macos-arm/*.app.tar.gz.sig 2>/dev/null | tr -d '\n' || echo "")
+          WINDOWS_SIG=$(cat artifacts/tauri-windows/*.exe.sig 2>/dev/null | tr -d '\n' || echo "")
+
+          cat > artifacts/latest.json << EOF
+          {
+            "version": "${VERSION}",
+            "notes": "See release notes at https://github.com/aocyber/devflow/releases/tag/v${VERSION}",
+            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "platforms": {
+              "linux-x86_64": {
+                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/devflow_${VERSION}_amd64.AppImage",
+                "signature": "${LINUX_SIG}"
+              },
+              "darwin-x86_64": {
+                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/DevFlow_x64.app.tar.gz",
+                "signature": "${MACOS_INTEL_SIG}"
+              },
+              "darwin-aarch64": {
+                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/DevFlow_aarch64.app.tar.gz",
+                "signature": "${MACOS_ARM_SIG}"
+              },
+              "windows-x86_64": {
+                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/DevFlow_${VERSION}_x64-setup.exe",
+                "signature": "${WINDOWS_SIG}"
+              }
+            }
+          }
+          EOF
+
+          echo "Generated latest.json:"
+          cat artifacts/latest.json
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -175,3 +224,4 @@ jobs:
             artifacts/tauri-macos-intel/*
             artifacts/tauri-macos-arm/*
             artifacts/tauri-windows/*
+            artifacts/latest.json
