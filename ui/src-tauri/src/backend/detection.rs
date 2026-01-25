@@ -230,7 +230,7 @@ pub fn is_wsl2_distro(distro: &str) -> bool {
                     if name.eq_ignore_ascii_case(distro) {
                         // Version is typically the last column
                         if let Some(version_str) = parts.last() {
-                            return version_str == "2";
+                            return *version_str == "2";
                         }
                     }
                 }
