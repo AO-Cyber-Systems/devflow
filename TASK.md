@@ -110,6 +110,10 @@
 - Fixed attribute naming in setup handler: `tool.binary` (not `command`), `tool.is_essential` (not `essential`), `tool.managed_by_mise` (not `mise_managed`)
 - ToolStatus doesn't have `installed_via` attribute - removed from detect_tool response
 
+## TODO: CI/CD Improvements
+
+- [ ] **Auto-publish releases**: Change `.github/workflows/build.yml` to publish releases automatically instead of creating drafts. Update the `softprops/action-gh-release` step to use `draft: false` instead of `draft: true`.
+
 ---
 
 ## Completed Tasks
