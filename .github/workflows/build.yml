@@ -101,6 +101,12 @@ jobs:
             ${{ matrix.os }}-cargo-build-
             ${{ matrix.os }}-cargo-
 
+      - name: Clean bundle directory
+        # Remove old build artifacts from cache to prevent version mixing in releases
+        run: |
+          rm -rf ui/src-tauri/target/${{ matrix.target }}/release/bundle || true
+        shell: bash
+
       - name: Install Linux dependencies
         if: matrix.platform == 'linux'
         run: |

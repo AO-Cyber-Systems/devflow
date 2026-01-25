@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "devflow"
-version = "0.1.0"
+version = "0.2.5"
 description = "Developer workflow CLI for AOCyber ecosystem"
 readme = "README.md"
 license = {text = "MIT"}
