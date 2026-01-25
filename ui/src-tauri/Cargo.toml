@@ -1,6 +1,6 @@
 [package]
 name = "devflow-ui"
-version = "0.2.3"
+version = "0.2.4"
 description = "DevFlow Desktop UI - Local development environment manager"
 authors = ["DevFlow Team"]
 license = "MIT"
