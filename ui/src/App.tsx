@@ -173,7 +173,13 @@ function AppContent() {
 
   // Show wizard if backend not configured
   if (showWizard) {
-    return <SetupWizard onComplete={handleWizardComplete} />;
+    return (
+      <div className="min-h-screen bg-bg-primary">
+        {/* Update checker available even during setup */}
+        <UpdateChecker />
+        <SetupWizard onComplete={handleWizardComplete} />
+      </div>
+    );
   }
 
   // Show main app
