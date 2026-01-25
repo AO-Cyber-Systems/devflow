@@ -273,37 +273,53 @@ pub fn remove_docker_container(container_name: &str) -> InstallResult {
 }
 
 /// Install devflow in a WSL2 distribution.
+///
+/// Uses pipx for installation (PEP 668 compliant). Falls back to a venv if pipx
+/// is unavailable. This avoids the "externally-managed-environment" error on
+/// modern Debian/Ubuntu systems.
 #[cfg(windows)]
 pub fn install_devflow_wsl(distro: &str) -> InstallResult {
     log::info!("Installing devflow in WSL2 distro: {}", distro);
 
-    // First, ensure pip is available
-    let pip_check = Command::new("wsl")
+    // Check if pipx is available
+    let pipx_check = Command::new("wsl")
+        .args(["-d", distro, "--", "bash", "-c", "command -v pipx"])
+        .output();
+
+    let has_pipx = pipx_check.map(|o| o.status.success()).unwrap_or(false);
+
+    if has_pipx {
+        // Use pipx (preferred for CLI applications)
+        log::info!("Using pipx to install devflow");
+        return install_devflow_wsl_pipx(distro);
+    }
+
+    // Try to install pipx
+    log::info!("pipx not found, attempting to install it");
+    let pipx_install = Command::new("wsl")
         .args([
             "-d",
             distro,
             "--",
             "bash",
             "-c",
-            "python3 -m pip --version || pip3 --version",
+            "sudo apt-get update && sudo apt-get install -y pipx && pipx ensurepath",
         ])
         .output();
 
-    if !pip_check.map(|o| o.status.success()).unwrap_or(false) {
-        // Try to install pip
-        let _ = Command::new("wsl")
-            .args([
-                "-d",
-                distro,
-                "--",
-                "bash",
-                "-c",
-                "sudo apt-get update && sudo apt-get install -y python3-pip",
-            ])
-            .output();
+    if pipx_install.map(|o| o.status.success()).unwrap_or(false) {
+        return install_devflow_wsl_pipx(distro);
     }
 
-    // Install devflow
+    // Fall back to venv if pipx installation failed
+    log::info!("pipx installation failed, falling back to venv");
+    install_devflow_wsl_venv(distro)
+}
+
+/// Install devflow using pipx in WSL2.
+#[cfg(windows)]
+fn install_devflow_wsl_pipx(distro: &str) -> InstallResult {
+    // Install or upgrade devflow with pipx
     let output = Command::new("wsl")
         .args([
             "-d",
@@ -311,38 +327,112 @@ pub fn install_devflow_wsl(distro: &str) -> InstallResult {
             "--",
             "bash",
             "-c",
-            "python3 -m pip install --user --upgrade devflow || pip3 install --user --upgrade devflow",
+            "pipx install devflow --force || pipx upgrade devflow",
         ])
         .output();
 
     match output {
         Ok(o) if o.status.success() => {
             // Get version
-            let version = Command::new("wsl")
+            let version = get_wsl_devflow_version(distro);
+            InstallResult::ok_with_version(
+                format!("DevFlow installed in WSL2 ({}) via pipx", distro),
+                version.unwrap_or_else(|| "unknown".to_string()),
+            )
+        }
+        Ok(o) => {
+            let stderr = String::from_utf8_lossy(&o.stderr);
+            // Try installing from GitHub if PyPI fails
+            log::warn!("pipx install from PyPI failed, trying GitHub: {}", stderr);
+            let github_output = Command::new("wsl")
                 .args([
                     "-d",
                     distro,
                     "--",
                     "bash",
                     "-c",
-                    "python3 -c 'import devflow; print(devflow.__version__)'",
+                    "pipx install git+https://github.com/AO-Cyber-Systems/devflow.git --force",
                 ])
-                .output()
-                .ok()
-                .filter(|o| o.status.success())
-                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+                .output();
 
+            match github_output {
+                Ok(o) if o.status.success() => {
+                    let version = get_wsl_devflow_version(distro);
+                    InstallResult::ok_with_version(
+                        format!("DevFlow installed in WSL2 ({}) via pipx from GitHub", distro),
+                        version.unwrap_or_else(|| "dev".to_string()),
+                    )
+                }
+                Ok(o) => {
+                    let stderr = String::from_utf8_lossy(&o.stderr);
+                    InstallResult::err(format!("Failed to install via pipx: {}", stderr))
+                }
+                Err(e) => InstallResult::err(format!("Failed to run pipx: {}", e)),
+            }
+        }
+        Err(e) => InstallResult::err(format!("Failed to run wsl: {}", e)),
+    }
+}
+
+/// Install devflow in a virtual environment in WSL2.
+#[cfg(windows)]
+fn install_devflow_wsl_venv(distro: &str) -> InstallResult {
+    let venv_path = "~/.local/share/devflow-venv";
+
+    // Ensure python3-venv is installed and create venv
+    let setup_cmd = format!(
+        "sudo apt-get update && sudo apt-get install -y python3-venv && \
+         python3 -m venv {} && \
+         {}/bin/pip install --upgrade pip && \
+         {}/bin/pip install devflow",
+        venv_path, venv_path, venv_path
+    );
+
+    let output = Command::new("wsl")
+        .args(["-d", distro, "--", "bash", "-c", &setup_cmd])
+        .output();
+
+    match output {
+        Ok(o) if o.status.success() => {
+            // Create a symlink to make devflow accessible
+            let link_cmd = format!(
+                "mkdir -p ~/.local/bin && ln -sf {}/bin/devflow ~/.local/bin/devflow",
+                venv_path
+            );
+            let _ = Command::new("wsl")
+                .args(["-d", distro, "--", "bash", "-c", &link_cmd])
+                .output();
+
+            let version = get_wsl_devflow_version(distro);
             InstallResult::ok_with_version(
-                format!("DevFlow installed in WSL2 ({})", distro),
+                format!("DevFlow installed in WSL2 ({}) via venv", distro),
                 version.unwrap_or_else(|| "unknown".to_string()),
             )
         }
         Ok(o) => {
             let stderr = String::from_utf8_lossy(&o.stderr);
-            InstallResult::err(format!("Failed to install in WSL2: {}", stderr))
+            InstallResult::err(format!("Failed to install in venv: {}", stderr))
         }
         Err(e) => InstallResult::err(format!("Failed to run wsl: {}", e)),
     }
+}
+
+/// Get devflow version from WSL2.
+#[cfg(windows)]
+fn get_wsl_devflow_version(distro: &str) -> Option<String> {
+    Command::new("wsl")
+        .args([
+            "-d",
+            distro,
+            "--",
+            "bash",
+            "-c",
+            "devflow --version 2>/dev/null || python3 -c 'import devflow; print(devflow.__version__)' 2>/dev/null",
+        ])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
 }
 
 #[cfg(not(windows))]
