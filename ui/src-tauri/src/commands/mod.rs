@@ -5,6 +5,7 @@ pub mod dev;
 pub mod infra;
 pub mod projects;
 pub mod secrets;
+pub mod setup;
 pub mod system;
 
 use crate::bridge::BridgeManager;

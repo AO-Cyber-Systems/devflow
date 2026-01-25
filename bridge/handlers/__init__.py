@@ -7,6 +7,7 @@ from .dev import DevHandler
 from .infra import InfraHandler
 from .projects import ProjectsHandler
 from .secrets import SecretsHandler
+from .setup import SetupHandler
 from .system import SystemHandler
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "InfraHandler",
     "ProjectsHandler",
     "SecretsHandler",
+    "SetupHandler",
     "SystemHandler",
 ]

@@ -12,6 +12,7 @@ from .handlers import (
     InfraHandler,
     ProjectsHandler,
     SecretsHandler,
+    SetupHandler,
     SystemHandler,
 )
 from .server import RpcServer
@@ -38,6 +39,7 @@ def main() -> None:
 
     # Register handlers
     server.register_handler(SystemHandler(), "system")
+    server.register_handler(SetupHandler(), "setup")
     server.register_handler(ConfigHandler(), "config")
     server.register_handler(ProjectsHandler(), "projects")
     server.register_handler(InfraHandler(), "infra")

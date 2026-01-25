@@ -8,7 +8,7 @@ import {
   Code2,
   Key,
   Rocket,
-  Stethoscope,
+  Wrench,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
   { to: '/database', icon: <Database size={20} />, label: 'Database' },
   { to: '/secrets', icon: <Key size={20} />, label: 'Secrets' },
   { to: '/deploy', icon: <Rocket size={20} />, label: 'Deploy' },
-  { to: '/doctor', icon: <Stethoscope size={20} />, label: 'Doctor' },
+  { to: '/setup', icon: <Wrench size={20} />, label: 'Setup & Health' },
 ];
 
 export function Sidebar() {

@@ -11,7 +11,7 @@ import {
   Database,
   Secrets,
   Deploy,
-  Doctor,
+  Setup,
 } from './pages';
 import { useAppStore } from './store';
 import { startBridge, getGlobalConfig, listProjects } from './api';
@@ -87,7 +87,9 @@ function AppContent() {
           <Route path="/database" element={<Database />} />
           <Route path="/secrets" element={<Secrets />} />
           <Route path="/deploy" element={<Deploy />} />
-          <Route path="/doctor" element={<Doctor />} />
+          <Route path="/setup" element={<Setup />} />
+          {/* Redirect old doctor route to setup */}
+          <Route path="/doctor" element={<Navigate to="/setup" replace />} />
         </Routes>
       </main>
       <Notifications />

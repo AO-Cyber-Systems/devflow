@@ -10,4 +10,5 @@ export * from './dev';
 export * from './infra';
 export * from './projects';
 export * from './secrets';
+export * from './setup';
 export * from './system';

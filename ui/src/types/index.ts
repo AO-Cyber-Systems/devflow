@@ -309,3 +309,148 @@ export interface ListResponse<T> {
 // ============================================================
 
 export type BridgeState = 'Stopped' | 'Starting' | 'Running' | 'Error';
+
+// ============================================================
+// Setup / Prerequisites Types
+// ============================================================
+
+export type ToolCategory =
+  | 'code_editor'
+  | 'runtime'
+  | 'container'
+  | 'database'
+  | 'secrets'
+  | 'version_control'
+  | 'cli_utility'
+  | 'shell'
+  | 'infrastructure';
+
+export type InstallStatus =
+  | 'installed'
+  | 'not_installed'
+  | 'outdated'
+  | 'installing'
+  | 'failed';
+
+export type PackageManager =
+  | 'brew'
+  | 'apt'
+  | 'dnf'
+  | 'yum'
+  | 'pacman'
+  | 'zypper'
+  | 'snap'
+  | 'flatpak'
+  | 'winget'
+  | 'scoop'
+  | 'choco'
+  | 'mise'
+  | 'npm'
+  | 'pipx';
+
+export interface PlatformInfo {
+  os: 'linux' | 'macos' | 'windows' | 'unknown';
+  distro: string | null;
+  architecture: 'x86_64' | 'arm64' | 'armv7' | 'unknown';
+  is_wsl: boolean;
+  package_managers: PackageManager[];
+  is_macos: boolean;
+  is_linux: boolean;
+  is_windows: boolean;
+}
+
+export interface ToolInfo {
+  id: string;
+  name: string;
+  description: string;
+  category: ToolCategory;
+  command: string;
+  website: string;
+  essential: boolean;
+  mise_managed: boolean;
+  install_methods: {
+    brew_package: string | null;
+    brew_cask: string | null;
+    apt_package: string | null;
+    snap_package: string | null;
+    snap_classic: boolean;
+    winget_id: string | null;
+    scoop_package: string | null;
+    mise_package: string | null;
+    npm_package: string | null;
+  };
+}
+
+export interface ToolStatus {
+  tool_id: string;
+  name: string;
+  category?: ToolCategory;
+  status: InstallStatus;
+  version: string | null;
+  path?: string | null;
+  install_methods: PackageManager[];
+  installed_via?: PackageManager | null;
+}
+
+export interface InstallMethod {
+  method: PackageManager;
+  available: boolean;
+  package: string | null;
+  is_cask?: boolean;
+  classic?: boolean;
+  managed_by_mise?: boolean;
+}
+
+export interface InstallMethodsResult {
+  tool_id: string;
+  name: string;
+  methods: InstallMethod[];
+  recommended: PackageManager | null;
+}
+
+export interface InstallResult {
+  success: boolean;
+  message: string;
+  version?: string | null;
+  error_details?: string | null;
+  requires_restart?: boolean;
+}
+
+export interface MultiInstallResult {
+  total: number;
+  success_count: number;
+  failed_count: number;
+  results: Array<{ tool_id: string } & InstallResult>;
+}
+
+export interface PrerequisitesSummary {
+  total: number;
+  installed: number;
+  not_installed: number;
+  outdated: number;
+  by_category: Record<
+    ToolCategory,
+    {
+      total: number;
+      installed: number;
+    }
+  >;
+}
+
+export interface CategoryInfo {
+  name: string;
+  tool_count: number;
+  tool_ids: string[];
+}
+
+export interface InstallerInfo {
+  package_manager: PackageManager;
+  name: string;
+}
+
+export interface MiseStatus {
+  available: boolean;
+  version?: string | null;
+  install_hint?: string | null;
+  error?: string;
+}
