@@ -187,23 +187,23 @@ jobs:
           cat > artifacts/latest.json << EOF
           {
             "version": "${VERSION}",
-            "notes": "See release notes at https://github.com/aocyber/devflow/releases/tag/v${VERSION}",
+            "notes": "See release notes at https://github.com/AO-Cyber-Systems/devflow/releases/tag/v${VERSION}",
             "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "platforms": {
               "linux-x86_64": {
-                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/devflow_${VERSION}_amd64.AppImage",
+                "url": "https://github.com/AO-Cyber-Systems/devflow/releases/download/v${VERSION}/devflow_${VERSION}_amd64.AppImage",
                 "signature": "${LINUX_SIG}"
               },
               "darwin-x86_64": {
-                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/DevFlow_x64.app.tar.gz",
+                "url": "https://github.com/AO-Cyber-Systems/devflow/releases/download/v${VERSION}/DevFlow_x64.app.tar.gz",
                 "signature": "${MACOS_INTEL_SIG}"
               },
               "darwin-aarch64": {
-                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/DevFlow_aarch64.app.tar.gz",
+                "url": "https://github.com/AO-Cyber-Systems/devflow/releases/download/v${VERSION}/DevFlow_aarch64.app.tar.gz",
                 "signature": "${MACOS_ARM_SIG}"
               },
               "windows-x86_64": {
-                "url": "https://github.com/aocyber/devflow/releases/download/v${VERSION}/DevFlow_${VERSION}_x64-setup.exe",
+                "url": "https://github.com/AO-Cyber-Systems/devflow/releases/download/v${VERSION}/DevFlow_${VERSION}_x64-setup.exe",
                 "signature": "${WINDOWS_SIG}"
               }
             }

@@ -45,7 +45,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENFMkVCMDVBQjc4QzNFQTkKUldTcFBveTNXckF1emdSOFBaOFhUSElLZ3Z3RktZL2RVbnpndVJwSzBvWnVOZXJ6Zml5N2xZbGcK",
       "endpoints": [
-        "https://github.com/aocyber/devflow/releases/latest/download/latest.json"
+        "https://github.com/AO-Cyber-Systems/devflow/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
