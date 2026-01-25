@@ -164,16 +164,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Delete existing draft release
+      - name: Delete existing release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
         run: |
-          # Delete any existing draft release for this tag to avoid asset accumulation
-          EXISTING=$(gh release view "$TAG_NAME" --json isDraft,tagName 2>/dev/null || echo '{}')
-          if echo "$EXISTING" | jq -e '.isDraft == true' > /dev/null 2>&1; then
-            echo "Deleting existing draft release for $TAG_NAME"
-            gh release delete "$TAG_NAME" --yes
+          # Delete any existing release for this tag to avoid asset accumulation
+          # This ensures we get a clean release with only the current build's artifacts
+          if gh release view "$TAG_NAME" > /dev/null 2>&1; then
+            echo "Deleting existing release for $TAG_NAME"
+            gh release delete "$TAG_NAME" --yes || true
           fi
 
       - name: Download all artifacts
