@@ -454,3 +454,92 @@ export interface MiseStatus {
   install_hint?: string | null;
   error?: string;
 }
+
+// ============================================================
+// Backend Setup Types
+// ============================================================
+
+/**
+ * Backend type enumeration
+ */
+export type BackendType = 'local_python' | 'docker' | 'wsl2' | 'remote';
+
+/**
+ * Backend configuration for connecting to the Python bridge
+ */
+export interface BackendConfig {
+  /** The type of backend */
+  backend_type: BackendType;
+  /** Path to Python executable (for local_python) */
+  python_path: string | null;
+  /** Docker container name (for docker) */
+  container_name: string | null;
+  /** WSL distribution name (for wsl2) */
+  wsl_distro: string | null;
+  /** Remote host (for remote, docker, wsl2) */
+  remote_host: string | null;
+  /** Remote port (for remote, docker, wsl2) - defaults to 9876 */
+  remote_port: number | null;
+  /** Whether to auto-start the backend on app launch */
+  auto_start: boolean;
+}
+
+/**
+ * Global backend configuration stored at ~/.devflow/backend.json
+ */
+export interface GlobalBackendConfig {
+  /** The default backend configuration */
+  default_backend: BackendConfig | null;
+  /** Whether the backend has been configured at least once */
+  configured: boolean;
+}
+
+/**
+ * Prerequisite detection status
+ */
+export interface PrerequisiteStatus {
+  /** Python availability */
+  python_available: boolean;
+  /** Python version string (e.g., "3.11.5") */
+  python_version: string | null;
+  /** Path to Python executable */
+  python_path: string | null;
+  /** Whether devflow package is installed */
+  devflow_installed: boolean;
+  /** DevFlow package version */
+  devflow_version: string | null;
+  /** Docker availability */
+  docker_available: boolean;
+  /** Whether Docker daemon is running */
+  docker_running: boolean;
+  /** Docker version string */
+  docker_version: string | null;
+  /** WSL2 availability (Windows only) */
+  wsl_available: boolean;
+  /** List of available WSL distributions */
+  wsl_distros: string[];
+}
+
+/**
+ * Setup wizard step
+ */
+export type WizardStep =
+  | 'welcome'
+  | 'detecting'
+  | 'selection'
+  | 'installing'
+  | 'connecting'
+  | 'complete'
+  | 'error';
+
+/**
+ * Setup wizard state
+ */
+export interface WizardState {
+  step: WizardStep;
+  prerequisites: PrerequisiteStatus | null;
+  selectedBackend: BackendType | null;
+  config: BackendConfig | null;
+  installProgress: number;
+  error: string | null;
+}

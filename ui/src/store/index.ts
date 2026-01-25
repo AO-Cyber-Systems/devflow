@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import type {
+  BackendConfig,
   BridgeState,
   DevflowConfig,
   GlobalConfig,
@@ -12,6 +13,12 @@ import type {
 } from '../types';
 
 interface AppState {
+  // Backend configuration
+  backendConfigured: boolean;
+  setBackendConfigured: (configured: boolean) => void;
+  backendConfig: BackendConfig | null;
+  setBackendConfig: (config: BackendConfig | null) => void;
+
   // Bridge state
   bridgeState: BridgeState;
   setBridgeState: (state: BridgeState) => void;
@@ -54,6 +61,12 @@ interface Notification {
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  // Backend configuration
+  backendConfigured: false,
+  setBackendConfigured: (backendConfigured) => set({ backendConfigured }),
+  backendConfig: null,
+  setBackendConfig: (backendConfig) => set({ backendConfig }),
+
   // Bridge state
   bridgeState: 'Stopped',
   setBridgeState: (bridgeState) => set({ bridgeState }),

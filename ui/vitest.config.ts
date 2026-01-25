@@ -22,14 +22,13 @@ export default defineConfig({
         'src/vite-env.d.ts',
       ],
     },
-    // Mock Tauri APIs
-    alias: {
-      '@tauri-apps/api': path.resolve(__dirname, './src/test/mocks/tauri.ts'),
-    },
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Order matters - more specific paths must come first
+      '@tauri-apps/api/core': path.resolve(__dirname, './src/test/__mocks__/@tauri-apps/api/core.ts'),
+      '@tauri-apps/api': path.resolve(__dirname, './src/test/mocks/tauri.ts'),
     },
   },
 });

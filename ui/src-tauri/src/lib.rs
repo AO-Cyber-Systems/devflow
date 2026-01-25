@@ -1,3 +1,4 @@
+mod backend;
 mod bridge;
 mod commands;
 
@@ -106,6 +107,16 @@ pub fn run() {
             commands::setup::get_available_installers,
             commands::setup::get_prerequisites_summary,
             commands::setup::refresh_platform_info,
+            // Backend Setup (runs without Python bridge)
+            commands::backend_setup::detect_prerequisites,
+            commands::backend_setup::get_backend_config,
+            commands::backend_setup::save_backend_config,
+            commands::backend_setup::install_backend,
+            commands::backend_setup::start_backend_service,
+            commands::backend_setup::stop_backend_service,
+            commands::backend_setup::test_backend_connection,
+            commands::backend_setup::start_bridge_with_config,
+            commands::backend_setup::get_recommended_backend,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

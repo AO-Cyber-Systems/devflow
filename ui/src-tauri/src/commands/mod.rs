@@ -1,3 +1,4 @@
+pub mod backend_setup;
 pub mod config;
 pub mod database;
 pub mod deploy;

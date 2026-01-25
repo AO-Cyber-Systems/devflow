@@ -7,5 +7,6 @@ export { Database } from './Database';
 export { Secrets } from './Secrets';
 export { Deploy } from './Deploy';
 export { Setup } from './Setup';
+export { SetupWizard } from './SetupWizard';
 // Keep Doctor for backwards compatibility but prefer Setup
 export { Doctor } from './Doctor';

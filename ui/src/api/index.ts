@@ -2,6 +2,7 @@
  * API exports
  */
 
+export * from './backendSetup';
 export * from './bridge';
 export * from './config';
 export * from './database';
