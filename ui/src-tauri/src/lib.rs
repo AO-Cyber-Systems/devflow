@@ -117,6 +117,10 @@ pub fn run() {
             commands::backend_setup::test_backend_connection,
             commands::backend_setup::start_bridge_with_config,
             commands::backend_setup::get_recommended_backend,
+            commands::backend_setup::get_wsl_distros_detailed,
+            commands::backend_setup::validate_wsl_install,
+            commands::backend_setup::start_wsl,
+            commands::backend_setup::install_backend_with_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

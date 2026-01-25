@@ -543,3 +543,50 @@ export interface WizardState {
   installProgress: number;
   error: string | null;
 }
+
+/**
+ * Detailed status of a WSL distribution
+ */
+export interface WslDistroStatus {
+  /** Distribution name */
+  name: string;
+  /** Whether this is a WSL2 distribution (vs WSL1) */
+  is_wsl2: boolean;
+  /** Whether the distribution is currently running */
+  is_running: boolean;
+  /** Whether Python is available in this distro */
+  python_available: boolean;
+  /** Python version string (e.g., "3.11.5") */
+  python_version: string | null;
+  /** Whether devflow package is installed in this distro */
+  devflow_installed: boolean;
+  /** DevFlow package version in this distro */
+  devflow_version: string | null;
+}
+
+/**
+ * Issues that can prevent WSL installation
+ */
+export type WslInstallIssue =
+  | { type: 'distro_not_wsl2' }
+  | { type: 'distro_not_running' }
+  | { type: 'python_not_installed' }
+  | { type: 'python_version_too_old'; version: string; required: string }
+  | { type: 'no_network_access' }
+  | { type: 'insufficient_disk_space'; available_mb: number; required_mb: number }
+  | { type: 'pipx_not_available' }
+  | { type: 'port_in_use'; port: number };
+
+/**
+ * Result of pre-installation validation for WSL
+ */
+export interface WslInstallValidation {
+  /** Distribution name */
+  distro: string;
+  /** Whether installation can proceed */
+  can_install: boolean;
+  /** Blocking issues that must be resolved */
+  issues: WslInstallIssue[];
+  /** Non-blocking warnings */
+  warnings: string[];
+}

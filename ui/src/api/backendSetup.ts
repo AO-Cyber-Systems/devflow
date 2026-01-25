@@ -12,6 +12,8 @@ import type {
   BackendConfig,
   GlobalBackendConfig,
   PrerequisiteStatus,
+  WslDistroStatus,
+  WslInstallValidation,
 } from '../types';
 
 /**
@@ -72,6 +74,43 @@ export async function installBackend(
     throw new Error(response.error || 'Failed to install backend');
   }
   return response.data;
+}
+
+/**
+ * Install the backend with real-time log events.
+ *
+ * This is the same as installBackend but emits "install-log" events
+ * during installation that can be listened to for progress updates.
+ *
+ * Listen for events using:
+ * ```typescript
+ * import { listen } from '@tauri-apps/api/event';
+ * const unlisten = await listen<InstallLogEntry>('install-log', (event) => {
+ *   console.log(event.payload);
+ * });
+ * ```
+ */
+export async function installBackendWithLogs(
+  backendType: BackendType,
+  config?: Partial<BackendConfig>
+): Promise<string> {
+  const response = await invoke<CommandResponse<string>>('install_backend_with_logs', {
+    backendType,
+    config: config || null,
+  });
+  if (!response.success || !response.data) {
+    throw new Error(response.error || 'Failed to install backend');
+  }
+  return response.data;
+}
+
+/**
+ * Log entry from installation process.
+ */
+export interface InstallLogEntry {
+  level: 'info' | 'success' | 'warning' | 'error' | 'output';
+  message: string;
+  output?: string;
 }
 
 /**
@@ -205,5 +244,111 @@ export function getBackendTypeDescription(backendType: BackendType): string {
       return 'Run DevFlow as a service in Windows Subsystem for Linux 2. Best for Windows users.';
     case 'remote':
       return 'Connect to a DevFlow instance running on a remote server.';
+  }
+}
+
+/**
+ * Get detailed status for all WSL distributions.
+ *
+ * Returns information about each distro including WSL version,
+ * running state, Python availability, and DevFlow installation status.
+ */
+export async function getWslDistrosDetailed(): Promise<WslDistroStatus[]> {
+  const response = await invoke<CommandResponse<WslDistroStatus[]>>('get_wsl_distros_detailed');
+  if (!response.success || !response.data) {
+    throw new Error(response.error || 'Failed to get WSL distros');
+  }
+  return response.data;
+}
+
+/**
+ * Validate WSL installation prerequisites for a specific distribution.
+ *
+ * Checks: WSL version, running state, Python version, pipx, port availability, network.
+ */
+export async function validateWslInstallation(
+  distro: string,
+  port: number
+): Promise<WslInstallValidation> {
+  const response = await invoke<CommandResponse<WslInstallValidation>>('validate_wsl_install', {
+    distro,
+    port,
+  });
+  if (!response.success || !response.data) {
+    throw new Error(response.error || 'Failed to validate WSL installation');
+  }
+  return response.data;
+}
+
+/**
+ * Start a WSL distribution.
+ *
+ * Useful when a distro is not running and needs to be started
+ * before installation can proceed.
+ */
+export async function startWslDistro(distro: string): Promise<void> {
+  const response = await invoke<CommandResponse<void>>('start_wsl', { distro });
+  if (!response.success) {
+    throw new Error(response.error || 'Failed to start WSL distro');
+  }
+}
+
+/**
+ * Get a user-friendly message for a WSL installation issue.
+ */
+export function getWslIssueMessage(issue: import('../types').WslInstallIssue): {
+  title: string;
+  description: string;
+  resolution: string | null;
+} {
+  switch (issue.type) {
+    case 'distro_not_wsl2':
+      return {
+        title: 'WSL1 Distribution',
+        description: 'This distribution is running WSL version 1, which is not supported.',
+        resolution: 'Upgrade to WSL2 by running: wsl --set-version <distro> 2',
+      };
+    case 'distro_not_running':
+      return {
+        title: 'Distribution Not Running',
+        description: 'The selected distribution is not currently running.',
+        resolution: null, // We offer a "Start" button instead
+      };
+    case 'python_not_installed':
+      return {
+        title: 'Python Not Installed',
+        description: 'Python is not installed in this distribution.',
+        resolution: 'Install Python: sudo apt update && sudo apt install python3 python3-pip',
+      };
+    case 'python_version_too_old':
+      return {
+        title: 'Python Version Too Old',
+        description: `Python ${issue.version} is installed, but version ${issue.required}+ is required.`,
+        resolution: 'Upgrade Python or use a different distribution with a newer Python version.',
+      };
+    case 'no_network_access':
+      return {
+        title: 'No Network Access',
+        description: 'Cannot reach package servers from this distribution.',
+        resolution: 'Check your network connection and WSL network settings.',
+      };
+    case 'insufficient_disk_space':
+      return {
+        title: 'Insufficient Disk Space',
+        description: `Only ${issue.available_mb}MB available, but ${issue.required_mb}MB is required.`,
+        resolution: 'Free up disk space: sudo apt clean && sudo apt autoremove',
+      };
+    case 'pipx_not_available':
+      return {
+        title: 'pipx Not Available',
+        description: 'pipx is not installed and cannot be installed automatically.',
+        resolution: 'Install pipx manually: sudo apt install pipx && pipx ensurepath',
+      };
+    case 'port_in_use':
+      return {
+        title: 'Port In Use',
+        description: `Port ${issue.port} is already in use by another application.`,
+        resolution: null, // We offer port selection instead
+      };
   }
 }
