@@ -272,6 +272,20 @@ pub fn remove_docker_container(container_name: &str) -> InstallResult {
     }
 }
 
+/// Run a bash command in WSL2.
+///
+/// Uses `wsl -d <distro> -e bash -lc "command"` which:
+/// - `-d <distro>`: Targets specific distribution
+/// - `-e bash`: Executes bash directly (not through default shell)
+/// - `-l`: Login shell (sources profile for PATH)
+/// - `-c`: Run command string
+#[cfg(windows)]
+fn run_wsl_command(distro: &str, command: &str) -> std::io::Result<std::process::Output> {
+    Command::new("wsl")
+        .args(["-d", distro, "-e", "bash", "-lc", command])
+        .output()
+}
+
 /// Install devflow in a WSL2 distribution.
 ///
 /// Uses pipx for installation (PEP 668 compliant). Falls back to a venv if pipx
@@ -282,10 +296,7 @@ pub fn install_devflow_wsl(distro: &str) -> InstallResult {
     log::info!("Installing devflow in WSL2 distro: {}", distro);
 
     // Check if pipx is available
-    let pipx_check = Command::new("wsl")
-        .args(["-d", distro, "--", "bash", "-c", "command -v pipx"])
-        .output();
-
+    let pipx_check = run_wsl_command(distro, "command -v pipx");
     let has_pipx = pipx_check.map(|o| o.status.success()).unwrap_or(false);
 
     if has_pipx {
@@ -296,16 +307,10 @@ pub fn install_devflow_wsl(distro: &str) -> InstallResult {
 
     // Try to install pipx
     log::info!("pipx not found, attempting to install it");
-    let pipx_install = Command::new("wsl")
-        .args([
-            "-d",
-            distro,
-            "--",
-            "bash",
-            "-c",
-            "sudo apt-get update && sudo apt-get install -y pipx && pipx ensurepath",
-        ])
-        .output();
+    let pipx_install = run_wsl_command(
+        distro,
+        "sudo apt-get update && sudo apt-get install -y pipx && pipx ensurepath",
+    );
 
     if pipx_install.map(|o| o.status.success()).unwrap_or(false) {
         return install_devflow_wsl_pipx(distro);
@@ -319,17 +324,12 @@ pub fn install_devflow_wsl(distro: &str) -> InstallResult {
 /// Install devflow using pipx in WSL2.
 #[cfg(windows)]
 fn install_devflow_wsl_pipx(distro: &str) -> InstallResult {
-    // Install or upgrade devflow with pipx
-    let output = Command::new("wsl")
-        .args([
-            "-d",
-            distro,
-            "--",
-            "bash",
-            "-c",
-            "pipx install devflow --force || pipx upgrade devflow",
-        ])
-        .output();
+    // Install devflow with pipx, using full path to pipx in case PATH isn't set
+    // The `|| true` ensures we continue even if the package isn't found on PyPI yet
+    let output = run_wsl_command(
+        distro,
+        "pipx install devflow --force 2>/dev/null || ~/.local/bin/pipx install devflow --force",
+    );
 
     match output {
         Ok(o) if o.status.success() => {
@@ -344,16 +344,11 @@ fn install_devflow_wsl_pipx(distro: &str) -> InstallResult {
             let stderr = String::from_utf8_lossy(&o.stderr);
             // Try installing from GitHub if PyPI fails
             log::warn!("pipx install from PyPI failed, trying GitHub: {}", stderr);
-            let github_output = Command::new("wsl")
-                .args([
-                    "-d",
-                    distro,
-                    "--",
-                    "bash",
-                    "-c",
-                    "pipx install git+https://github.com/AO-Cyber-Systems/devflow.git --force",
-                ])
-                .output();
+            let github_output = run_wsl_command(
+                distro,
+                "pipx install git+https://github.com/AO-Cyber-Systems/devflow.git --force 2>/dev/null || \
+                 ~/.local/bin/pipx install git+https://github.com/AO-Cyber-Systems/devflow.git --force",
+            );
 
             match github_output {
                 Ok(o) if o.status.success() => {
@@ -377,31 +372,28 @@ fn install_devflow_wsl_pipx(distro: &str) -> InstallResult {
 /// Install devflow in a virtual environment in WSL2.
 #[cfg(windows)]
 fn install_devflow_wsl_venv(distro: &str) -> InstallResult {
-    let venv_path = "~/.local/share/devflow-venv";
+    // Use expanded path since ~ might not expand in all contexts
+    let venv_path = "$HOME/.local/share/devflow-venv";
 
     // Ensure python3-venv is installed and create venv
     let setup_cmd = format!(
         "sudo apt-get update && sudo apt-get install -y python3-venv && \
-         python3 -m venv {} && \
-         {}/bin/pip install --upgrade pip && \
-         {}/bin/pip install devflow",
-        venv_path, venv_path, venv_path
+         python3 -m venv {venv} && \
+         {venv}/bin/pip install --upgrade pip && \
+         {venv}/bin/pip install devflow",
+        venv = venv_path
     );
 
-    let output = Command::new("wsl")
-        .args(["-d", distro, "--", "bash", "-c", &setup_cmd])
-        .output();
+    let output = run_wsl_command(distro, &setup_cmd);
 
     match output {
         Ok(o) if o.status.success() => {
             // Create a symlink to make devflow accessible
             let link_cmd = format!(
-                "mkdir -p ~/.local/bin && ln -sf {}/bin/devflow ~/.local/bin/devflow",
+                "mkdir -p $HOME/.local/bin && ln -sf {}/bin/devflow $HOME/.local/bin/devflow",
                 venv_path
             );
-            let _ = Command::new("wsl")
-                .args(["-d", distro, "--", "bash", "-c", &link_cmd])
-                .output();
+            let _ = run_wsl_command(distro, &link_cmd);
 
             let version = get_wsl_devflow_version(distro);
             InstallResult::ok_with_version(
@@ -420,19 +412,16 @@ fn install_devflow_wsl_venv(distro: &str) -> InstallResult {
 /// Get devflow version from WSL2.
 #[cfg(windows)]
 fn get_wsl_devflow_version(distro: &str) -> Option<String> {
-    Command::new("wsl")
-        .args([
-            "-d",
-            distro,
-            "--",
-            "bash",
-            "-c",
-            "devflow --version 2>/dev/null || python3 -c 'import devflow; print(devflow.__version__)' 2>/dev/null",
-        ])
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+    // Try multiple locations since PATH might not include ~/.local/bin
+    run_wsl_command(
+        distro,
+        "devflow --version 2>/dev/null || \
+         ~/.local/bin/devflow --version 2>/dev/null || \
+         $HOME/.local/share/devflow-venv/bin/devflow --version 2>/dev/null",
+    )
+    .ok()
+    .filter(|o| o.status.success())
+    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
 }
 
 #[cfg(not(windows))]
@@ -446,16 +435,7 @@ pub fn start_wsl_service(distro: &str, port: u16) -> InstallResult {
     log::info!("Starting devflow service in WSL2 ({})", distro);
 
     // Kill any existing service
-    let _ = Command::new("wsl")
-        .args([
-            "-d",
-            distro,
-            "--",
-            "bash",
-            "-c",
-            &format!("pkill -f 'bridge.main.*--port {}'", port),
-        ])
-        .output();
+    let _ = run_wsl_command(distro, &format!("pkill -f 'bridge.main.*--port {}' || true", port));
 
     // Start the service in the background
     let start_cmd = format!(
@@ -463,9 +443,7 @@ pub fn start_wsl_service(distro: &str, port: u16) -> InstallResult {
         port
     );
 
-    let output = Command::new("wsl")
-        .args(["-d", distro, "--", "bash", "-c", &start_cmd])
-        .output();
+    let output = run_wsl_command(distro, &start_cmd);
 
     match output {
         Ok(o) if o.status.success() => {
@@ -473,16 +451,7 @@ pub fn start_wsl_service(distro: &str, port: u16) -> InstallResult {
             std::thread::sleep(std::time::Duration::from_secs(2));
 
             // Verify it's running
-            let check = Command::new("wsl")
-                .args([
-                    "-d",
-                    distro,
-                    "--",
-                    "bash",
-                    "-c",
-                    &format!("pgrep -f 'bridge.main.*--port {}'", port),
-                ])
-                .output();
+            let check = run_wsl_command(distro, &format!("pgrep -f 'bridge.main.*--port {}'", port));
 
             if check.map(|o| o.status.success()).unwrap_or(false) {
                 InstallResult::ok(format!("DevFlow service started in WSL2 on port {}", port))
@@ -508,16 +477,7 @@ pub fn start_wsl_service(_distro: &str, _port: u16) -> InstallResult {
 pub fn stop_wsl_service(distro: &str, port: u16) -> InstallResult {
     log::info!("Stopping devflow service in WSL2 ({})", distro);
 
-    let output = Command::new("wsl")
-        .args([
-            "-d",
-            distro,
-            "--",
-            "bash",
-            "-c",
-            &format!("pkill -f 'bridge.main.*--port {}'", port),
-        ])
-        .output();
+    let output = run_wsl_command(distro, &format!("pkill -f 'bridge.main.*--port {}'", port));
 
     match output {
         Ok(_) => InstallResult::ok("DevFlow service stopped in WSL2"),
