@@ -112,7 +112,7 @@
 
 ## TODO: CI/CD Improvements
 
-- [ ] **Auto-publish releases**: Change `.github/workflows/build.yml` to publish releases automatically instead of creating drafts. Update the `softprops/action-gh-release` step to use `draft: false` instead of `draft: true`.
+- [x] **Auto-publish releases**: Changed `.github/workflows/build.yml` to publish releases automatically instead of creating drafts. Also added step to delete existing draft releases to prevent asset accumulation.
 
 ---
 
