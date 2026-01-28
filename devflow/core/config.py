@@ -270,6 +270,44 @@ class InfrastructureConfig(BaseModel):
     certificates: CertificatesConfig = Field(default_factory=CertificatesConfig)
 
 
+# =============================================================================
+# Remote Context Configuration
+# =============================================================================
+
+
+class TunnelPortMapping(BaseModel):
+    """Port mapping for SSH tunnels (remote -> local)."""
+
+    local: int
+    remote: int
+    description: str | None = None
+
+
+class RemoteContextConfig(BaseModel):
+    """Configuration for remote Docker contexts with SSH tunneling."""
+
+    enabled: bool = False
+    name: str = "remote"
+    host: str  # Remote hostname or IP
+    user: str = "root"
+    ssh_port: int = 22
+    ssh_key: Path | None = None
+
+    # Tunnel settings
+    tunnel_type: str = "ssh"  # Currently only "ssh" supported
+    auto_tunnel: bool = True  # Start tunnels automatically with infra
+
+    # Ports to forward (remote -> local)
+    tunnels: list[TunnelPortMapping] = Field(
+        default_factory=lambda: [
+            TunnelPortMapping(local=80, remote=80, description="HTTP"),
+            TunnelPortMapping(local=443, remote=443, description="HTTPS"),
+            TunnelPortMapping(local=5432, remote=5432, description="PostgreSQL"),
+            TunnelPortMapping(local=6379, remote=6379, description="Redis"),
+        ]
+    )
+
+
 class ProjectConfig(BaseModel):
     """Project metadata."""
 
@@ -288,6 +326,7 @@ class DevflowConfig(BaseModel):
     development: DevelopmentConfig = Field(default_factory=DevelopmentConfig)
     infrastructure: InfrastructureConfig = Field(default_factory=InfrastructureConfig)
     git: GitConfig = Field(default_factory=GitConfig)
+    remote: RemoteContextConfig | None = None  # Optional - remote Docker context with tunneling
 
     def get_database_url(self, env: str) -> str | None:
         """Get database URL for the specified environment."""

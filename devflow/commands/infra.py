@@ -24,8 +24,11 @@ def _get_provider() -> InfrastructureProvider:
     from devflow.providers.infrastructure import InfrastructureProvider
 
     config = load_project_config()
-    if config and config.infrastructure:
-        return InfrastructureProvider(config.infrastructure)
+    if config:
+        return InfrastructureProvider(
+            config=config.infrastructure if config.infrastructure else InfrastructureConfig(),
+            remote_config=config.remote,
+        )
     return InfrastructureProvider(InfrastructureConfig())
 
 
@@ -127,6 +130,18 @@ def status(
     console.print(f"Certificates: {certs_status}")
     if infra_status.certificates_path:
         console.print(f"  Path: [dim]{infra_status.certificates_path}[/dim]")
+
+    # Remote context / tunnel status
+    if infra_status.remote_configured:
+        console.print(f"\n[bold]Remote Context[/bold]")
+        console.print(f"  Host: [cyan]{infra_status.remote_host}[/cyan]")
+        if infra_status.tunnel_status == "running":
+            latency_str = f" ({infra_status.tunnel_latency_ms:.1f}ms)" if infra_status.tunnel_latency_ms else ""
+            console.print(f"  Tunnel: [green]running[/green]{latency_str}")
+        elif infra_status.tunnel_status == "stopped":
+            console.print("  Tunnel: [dim]stopped[/dim]")
+        else:
+            console.print(f"  Tunnel: [yellow]{infra_status.tunnel_status}[/yellow]")
 
     # Registered projects
     if infra_status.registered_projects:

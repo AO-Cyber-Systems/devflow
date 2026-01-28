@@ -1,6 +1,7 @@
 """RPC method handlers for the bridge server."""
 
 from .config import ConfigHandler
+from .context import ContextHandler
 from .database import DatabaseHandler
 from .deploy import DeployHandler
 from .dev import DevHandler
@@ -12,6 +13,7 @@ from .system import SystemHandler
 
 __all__ = [
     "ConfigHandler",
+    "ContextHandler",
     "DatabaseHandler",
     "DeployHandler",
     "DevHandler",

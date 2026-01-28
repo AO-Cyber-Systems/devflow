@@ -6,6 +6,7 @@ import sys
 
 from .handlers import (
     ConfigHandler,
+    ContextHandler,
     DatabaseHandler,
     DeployHandler,
     DevHandler,
@@ -43,6 +44,7 @@ def main() -> None:
     server.register_handler(ConfigHandler(), "config")
     server.register_handler(ProjectsHandler(), "projects")
     server.register_handler(InfraHandler(), "infra")
+    server.register_handler(ContextHandler(), "context")
     server.register_handler(DatabaseHandler(), "db")
     server.register_handler(DeployHandler(), "deploy")
     server.register_handler(SecretsHandler(), "secrets")

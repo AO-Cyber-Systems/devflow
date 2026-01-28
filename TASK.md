@@ -118,6 +118,31 @@
 
 ## Completed Tasks
 
+### 2025-01-28
+
+- Implemented Docker Remote Contexts with SSH tunneling:
+  - Added `RemoteContextConfig` and `TunnelPortMapping` to configuration schema
+  - Created `devflow/providers/remote/` module with:
+    - `tunnel.py` - Abstract tunnel provider interface
+    - `ssh_tunnel.py` - SSH/autossh tunnel implementation
+    - `context.py` - Docker context management
+  - Added `devflow context` CLI commands:
+    - `list` - List Docker contexts
+    - `create` - Create remote SSH-based contexts
+    - `delete` - Delete DevFlow contexts
+    - `use` - Switch contexts
+    - `test` - Test connection
+    - `tunnel start/stop/status/restart` - Manage SSH tunnels
+  - Integrated tunnels with infrastructure:
+    - Auto-start tunnels with `devflow infra up` when configured
+    - Show tunnel status in `devflow infra status`
+  - Created bridge handler for UI integration (`bridge/handlers/context.py`)
+  - Added 47 unit tests for remote context feature
+  - Configuration supports:
+    - SSH host, user, port, key
+    - Port mappings (HTTP, HTTPS, PostgreSQL, Redis)
+    - Auto-tunnel on infrastructure start
+
 ### 2025-01-24
 
 - Implemented Tauri auto-update release pipeline:

@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 
 from devflow import __version__
-from devflow.commands import config, db, deploy, dev, doctor, infra, install, secrets
+from devflow.commands import config, context, db, deploy, dev, doctor, infra, install, secrets
 
 app = typer.Typer(
     name="devflow",
@@ -22,6 +22,7 @@ app.add_typer(deploy.app, name="deploy", help="Deployment operations")
 app.add_typer(dev.app, name="dev", help="Local development commands")
 app.add_typer(config.app, name="config", help="Configuration management")
 app.add_typer(infra.app, name="infra", help="Shared development infrastructure")
+app.add_typer(context.app, name="context", help="Remote Docker context and tunnel management")
 
 
 @app.command()

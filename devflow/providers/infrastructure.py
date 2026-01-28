@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from devflow.core.config import InfrastructureConfig
+from devflow.core.config import InfrastructureConfig, RemoteContextConfig
 from devflow.core.paths import get_devflow_home, get_docker_socket, get_hosts_file
 from devflow.providers.docker import DockerProvider
 from devflow.providers.mkcert import MkcertProvider
@@ -24,6 +24,11 @@ class InfraStatus:
     certificates_valid: bool = False
     certificates_path: str | None = None
     registered_projects: list[dict] = field(default_factory=list)
+    # Remote context / tunnel status
+    remote_configured: bool = False
+    remote_host: str | None = None
+    tunnel_status: str | None = None
+    tunnel_latency_ms: float | None = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -36,6 +41,10 @@ class InfraStatus:
             "certificates_valid": self.certificates_valid,
             "certificates_path": self.certificates_path,
             "registered_projects": self.registered_projects,
+            "remote_configured": self.remote_configured,
+            "remote_host": self.remote_host,
+            "tunnel_status": self.tunnel_status,
+            "tunnel_latency_ms": self.tunnel_latency_ms,
         }
 
 
@@ -68,13 +77,19 @@ class InfrastructureProvider:
     TRAEFIK_CONTAINER_NAME = "devflow-traefik"
     PROJECTS_FILE = "projects.json"
 
-    def __init__(self, config: InfrastructureConfig | None = None):
+    def __init__(
+        self,
+        config: InfrastructureConfig | None = None,
+        remote_config: RemoteContextConfig | None = None,
+    ):
         """Initialize the infrastructure provider.
 
         Args:
             config: Infrastructure configuration. Uses defaults if not provided.
+            remote_config: Optional remote context configuration for tunnel management.
         """
         self.config = config or InfrastructureConfig()
+        self.remote_config = remote_config
         self.docker = DockerProvider()
         self.mkcert = MkcertProvider()
 
@@ -106,6 +121,13 @@ class InfrastructureProvider:
         Returns:
             InfraResult indicating success or failure
         """
+        # If remote context is configured with auto_tunnel, ensure tunnel is running first
+        tunnel_info = None
+        if self.remote_config and self.remote_config.enabled and self.remote_config.auto_tunnel:
+            tunnel_ok, tunnel_msg, tunnel_info = self._ensure_tunnel_running()
+            if not tunnel_ok:
+                return InfraResult(False, f"Failed to start tunnel: {tunnel_msg}")
+
         if not self.docker.is_available():
             return InfraResult(False, "Docker is not available")
 
@@ -127,15 +149,17 @@ class InfrastructureProvider:
         if not traefik_ok:
             return InfraResult(False, f"Failed to start Traefik: {traefik_msg}")
 
-        return InfraResult(
-            True,
-            "Infrastructure started successfully",
-            {
-                "network": self.config.network_name,
-                "traefik_url": f"https://traefik.localhost:{self.config.traefik.https_port}",
-                "dashboard_url": f"http://localhost:{self.config.traefik.dashboard_port}",
-            },
-        )
+        details = {
+            "network": self.config.network_name,
+            "traefik_url": f"https://traefik.localhost:{self.config.traefik.https_port}",
+            "dashboard_url": f"http://localhost:{self.config.traefik.dashboard_port}",
+        }
+
+        # Add tunnel info if applicable
+        if tunnel_info:
+            details["tunnel"] = tunnel_info
+
+        return InfraResult(True, "Infrastructure started successfully", details)
 
     def stop(self, remove_volumes: bool = False, remove_network: bool = False) -> InfraResult:
         """Stop the shared infrastructure.
@@ -208,6 +232,18 @@ class InfrastructureProvider:
         # Get registered projects
         status.registered_projects = [p.__dict__ for p in self.get_registered_projects()]
 
+        # Check remote context / tunnel status
+        if self.remote_config and self.remote_config.enabled:
+            status.remote_configured = True
+            status.remote_host = self.remote_config.host
+
+            from devflow.providers.remote.ssh_tunnel import SSHTunnelProvider
+
+            tunnel = SSHTunnelProvider(self.remote_config)
+            health = tunnel.health()
+            status.tunnel_status = health.status.value
+            status.tunnel_latency_ms = health.latency_ms
+
         return status
 
     def doctor(self) -> dict[str, Any]:
@@ -235,6 +271,50 @@ class InfrastructureProvider:
                 "devflow_home": str(self.DEVFLOW_HOME),
             },
         }
+
+    # -------------------------------------------------------------------------
+    # Remote Context / Tunnel Management
+    # -------------------------------------------------------------------------
+
+    def _ensure_tunnel_running(self) -> tuple[bool, str, dict | None]:
+        """Ensure SSH tunnel is running for remote context.
+
+        Returns:
+            Tuple of (success, message, tunnel_info_dict).
+        """
+        if not self.remote_config:
+            return True, "No remote config", None
+
+        from devflow.providers.remote.ssh_tunnel import SSHTunnelProvider
+        from devflow.providers.remote.tunnel import TunnelStatus
+
+        tunnel = SSHTunnelProvider(self.remote_config)
+
+        if not tunnel.is_available():
+            return False, "SSH is not available on this system", None
+
+        health = tunnel.health()
+
+        if health.status == TunnelStatus.RUNNING:
+            return True, "Tunnel already running", health.to_dict()
+
+        # Start the tunnel
+        try:
+            tunnel.start()
+
+            # Wait for tunnel to establish connection
+            import time
+
+            for _ in range(10):
+                time.sleep(1)
+                health = tunnel.health()
+                if health.status == TunnelStatus.RUNNING:
+                    return True, "Tunnel started", health.to_dict()
+
+            return False, "Tunnel failed to establish connection", health.to_dict()
+
+        except RuntimeError as e:
+            return False, str(e), None
 
     # -------------------------------------------------------------------------
     # Network Management
