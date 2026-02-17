@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "macos-ui-automation": {
+      "command": "/Users/justin/.local/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/justin/dev/macos-ui-automation-mcp",
+        "run",
+        "macos-ui-automation-mcp"
+      ]
+    }
+  }
+}

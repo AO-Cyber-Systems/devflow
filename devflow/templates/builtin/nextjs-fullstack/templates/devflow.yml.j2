@@ -1,0 +1,19 @@
+version: "1"
+
+project:
+  name: {{ project_name }}
+
+development:
+  compose_file: docker-compose.yml
+  services: []
+
+{% if database != 'none' %}
+database:
+  migrations:
+    directory: migrations
+    format: {% if database == 'supabase' %}supabase{% elif database == 'prisma' %}prisma{% else %}sql{% endif %}
+
+  environments:
+    local:
+      url_env: DATABASE_URL
+{% endif %}

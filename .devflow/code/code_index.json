@@ -1,0 +1,45 @@
+{
+  "project_path": "/Users/justin/dev/devflow",
+  "indexed_at": "2026-01-31T10:49:03.527540",
+  "scan_result": {
+    "project_path": "/Users/justin/dev/devflow",
+    "entity_count": 3852,
+    "files_scanned": 196,
+    "files_failed": 0,
+    "parse_errors": [],
+    "scan_time_ms": 1663.042,
+    "languages": {
+      "python": 196
+    },
+    "started_at": "2026-01-31T10:48:38.811085",
+    "completed_at": "2026-01-31T10:48:40.474127"
+  },
+  "resolution_result": {
+    "relationship_count": 7984,
+    "relationships_by_type": {
+      "imports": 297,
+      "calls": 2569,
+      "extends": 32,
+      "implements": 0,
+      "uses": 0,
+      "defines": 0,
+      "called_by": 2569,
+      "overrides": 0,
+      "contains": 2517,
+      "typed_as": 0,
+      "decorates": 0,
+      "returns": 0,
+      "instantiates": 0
+    },
+    "unresolved_calls": 5512,
+    "unresolved_imports": 1312,
+    "stats": {
+      "functions_analyzed": 2111,
+      "classes_analyzed": 406,
+      "imports_analyzed": 1139,
+      "calls_resolved": 2569,
+      "inheritance_resolved": 32
+    }
+  },
+  "entity_count": 3852
+}

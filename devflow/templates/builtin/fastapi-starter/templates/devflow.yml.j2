@@ -1,0 +1,19 @@
+version: "1"
+
+project:
+  name: {{ project_name }}
+
+development:
+  compose_file: docker-compose.yml
+  services: []
+
+{% if database != 'none' %}
+database:
+  migrations:
+    directory: migrations
+    format: {% if use_alembic == 'true' %}alembic{% else %}sql{% endif %}
+
+  environments:
+    local:
+      url_env: DATABASE_URL
+{% endif %}

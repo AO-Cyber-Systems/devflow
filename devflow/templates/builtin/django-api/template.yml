@@ -1,0 +1,100 @@
+version: "1"
+
+metadata:
+  name: "django-api"
+  display_name: "Django REST API"
+  description: "Django 5 with Django REST Framework and PostgreSQL"
+  category: "api"
+  icon: "django"
+  author: "DevFlow"
+  version: "1.0.0"
+  tags: ["python", "django", "rest", "api"]
+
+required_tools:
+  - python
+  - git
+
+recommended_tools:
+  - docker
+
+wizard:
+  steps:
+    - id: "basics"
+      title: "Project Basics"
+      fields:
+        - id: "project_name"
+          type: "text"
+          label: "Project Name"
+          required: true
+          placeholder: "my_api"
+          validation: "^[a-z][a-z0-9_]*$"
+          validation_message: "Name must be lowercase with letters, numbers, and underscores"
+        - id: "project_path"
+          type: "directory"
+          label: "Project Location"
+          required: true
+        - id: "python_version"
+          type: "select"
+          label: "Python Version"
+          default: "3.11"
+          options:
+            - value: "3.12"
+              label: "Python 3.12"
+            - value: "3.11"
+              label: "Python 3.11"
+            - value: "3.10"
+              label: "Python 3.10"
+
+    - id: "features"
+      title: "Features"
+      fields:
+        - id: "database"
+          type: "select"
+          label: "Database"
+          default: "postgres"
+          options:
+            - value: "postgres"
+              label: "PostgreSQL"
+            - value: "sqlite"
+              label: "SQLite"
+        - id: "use_docker"
+          type: "checkbox"
+          label: "Include Docker configuration"
+          default: "true"
+
+files:
+  - source: "static/.gitignore"
+    destination: ".gitignore"
+  - source: "static/.env.example"
+    destination: ".env.example"
+  - source: "templates/pyproject.toml.j2"
+    destination: "pyproject.toml"
+    template: true
+  - source: "templates/manage.py.j2"
+    destination: "manage.py"
+    template: true
+  - source: "templates/devflow.yml.j2"
+    destination: "devflow.yml"
+    template: true
+  - source: "src/app/"
+    destination: "{{ project_name }}/"
+    recursive: true
+    template: true
+  - source: "templates/Dockerfile.j2"
+    destination: "Dockerfile"
+    template: true
+    condition: "use_docker == 'true'"
+  - source: "templates/docker-compose.yml.j2"
+    destination: "docker-compose.yml"
+    template: true
+    condition: "use_docker == 'true'"
+
+hooks:
+  - name: "Create virtual environment"
+    command: "python3 -m venv .venv"
+  - name: "Install dependencies"
+    command: ".venv/bin/pip install -e '.[dev]'"
+  - name: "Initialize git repository"
+    command: "git init"
+  - name: "Create initial commit"
+    command: "git add . && git commit -m 'Initial commit from DevFlow template'"

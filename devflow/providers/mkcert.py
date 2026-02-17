@@ -225,6 +225,87 @@ class MkcertProvider(Provider):
         except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
             return []
 
+    def get_cert_expiry(self, cert_path: str) -> str | None:
+        """Extract expiry date from an existing certificate using openssl.
+
+        Args:
+            cert_path: Path to the certificate file
+
+        Returns:
+            ISO formatted expiry date string, or None on failure
+        """
+        cert_file = Path(cert_path).expanduser()
+        if not cert_file.exists():
+            return None
+
+        try:
+            # Use openssl to get the end date
+            result = subprocess.run(
+                ["openssl", "x509", "-in", str(cert_file), "-noout", "-enddate"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                return None
+
+            # Parse the output: notAfter=Feb 28 12:00:00 2027 GMT
+            output = result.stdout.strip()
+            if "=" in output:
+                date_str = output.split("=", 1)[1].strip()
+                # Parse the date format: Feb 28 12:00:00 2027 GMT
+                from datetime import datetime
+
+                try:
+                    dt = datetime.strptime(date_str, "%b %d %H:%M:%S %Y %Z")
+                    return dt.isoformat()
+                except ValueError:
+                    # Try alternate format without timezone
+                    try:
+                        dt = datetime.strptime(date_str.replace(" GMT", ""), "%b %d %H:%M:%S %Y")
+                        return dt.isoformat()
+                    except ValueError:
+                        return None
+            return None
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            return None
+
+    def get_cert_issuer(self, cert_path: str) -> str | None:
+        """Extract issuer from an existing certificate using openssl.
+
+        Args:
+            cert_path: Path to the certificate file
+
+        Returns:
+            Issuer string, or None on failure
+        """
+        cert_file = Path(cert_path).expanduser()
+        if not cert_file.exists():
+            return None
+
+        try:
+            # Use openssl to get the issuer
+            result = subprocess.run(
+                ["openssl", "x509", "-in", str(cert_file), "-noout", "-issuer"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                return None
+
+            # Parse the output: issuer=CN = mkcert ...
+            output = result.stdout.strip()
+            if "=" in output:
+                # Get everything after first =
+                issuer = output.split("=", 1)[1].strip()
+                # Clean up CN = format
+                issuer = re.sub(r"CN\s*=\s*", "", issuer)
+                return issuer
+            return None
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            return None
+
     def doctor(self) -> dict:
         """Run diagnostics and return status."""
         status = super().doctor()

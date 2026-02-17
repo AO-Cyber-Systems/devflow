@@ -35,6 +35,7 @@ class ToolCategory(str, Enum):
     CLI_UTILITY = "cli_utility"
     SHELL = "shell"
     INFRASTRUCTURE = "infrastructure"
+    BUILD = "build"
 
 
 @dataclass

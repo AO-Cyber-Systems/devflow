@@ -1,0 +1,30 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "domains": [
+      {
+        "domain": "*.localhost",
+        "in_certificate": false,
+        "in_hosts_file": false,
+        "is_wildcard": true,
+        "source": "default"
+      },
+      {
+        "domain": "localhost",
+        "in_certificate": false,
+        "in_hosts_file": false,
+        "is_wildcard": false,
+        "source": "default"
+      }
+    ],
+    "cert_info": {
+      "valid": false,
+      "path": "/Users/justin/.devflow/certs",
+      "domains": [],
+      "expires_at": null,
+      "issuer": null
+    },
+    "hosts_entries": []
+  }
+}

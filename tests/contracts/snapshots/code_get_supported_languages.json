@@ -1,0 +1,44 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "success": true,
+    "languages": [
+      "c",
+      "cpp",
+      "go",
+      "java",
+      "javascript",
+      "kotlin",
+      "lua",
+      "php",
+      "python",
+      "ruby",
+      "rust",
+      "swift",
+      "typescript"
+    ],
+    "extensions": [
+      ".c",
+      ".cc",
+      ".cpp",
+      ".go",
+      ".h",
+      ".hpp",
+      ".java",
+      ".js",
+      ".jsx",
+      ".kt",
+      ".lua",
+      ".php",
+      ".py",
+      ".pyi",
+      ".pyw",
+      ".rb",
+      ".rs",
+      ".swift",
+      ".ts",
+      ".tsx"
+    ]
+  }
+}

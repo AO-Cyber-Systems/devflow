@@ -412,8 +412,11 @@ class InfrastructureProvider:
             output_dir=str(self.certs_dir),
         )
 
-    def regenerate_certificates(self) -> InfraResult:
+    def regenerate_certificates(self, domains: list[str] | None = None) -> InfraResult:
         """Regenerate TLS certificates.
+
+        Args:
+            domains: Optional list of domains. Uses config domains if not provided.
 
         Returns:
             InfraResult indicating success or failure
@@ -421,11 +424,98 @@ class InfrastructureProvider:
         if not self.mkcert.is_available():
             return InfraResult(False, "mkcert is not installed")
 
+        cert_domains = domains if domains else self.config.certificates.domains
         success, message = self.mkcert.generate_cert(
-            domains=self.config.certificates.domains,
+            domains=cert_domains,
             output_dir=str(self.certs_dir),
         )
+
+        if success:
+            return InfraResult(
+                success,
+                message,
+                {"domains": cert_domains, "domains_count": len(cert_domains)},
+            )
         return InfraResult(success, message)
+
+    def sync_certs_to_docker(self) -> InfraResult:
+        """Sync certificates to Docker volumes.
+
+        Copies certificates from ~/.devflow/certs to the devflow-certs Docker volume.
+
+        Returns:
+            InfraResult indicating success or failure
+        """
+        cert_file = self.certs_dir / "cert.pem"
+        key_file = self.certs_dir / "key.pem"
+
+        if not cert_file.exists() or not key_file.exists():
+            return InfraResult(False, "Certificates not found. Generate them first.")
+
+        try:
+            # Read cert and key content
+            cert_content = cert_file.read_text()
+            key_content = key_file.read_text()
+
+            # Ensure volume exists
+            subprocess.run(
+                ["docker", "volume", "create", "devflow-certs"],
+                capture_output=True,
+                check=False,
+                timeout=10,
+            )
+
+            # Copy cert to volume
+            cert_cmd = [
+                "docker",
+                "run",
+                "--rm",
+                "-i",
+                "-v",
+                "devflow-certs:/certs",
+                "alpine:latest",
+                "sh",
+                "-c",
+                "cat > /certs/cert.pem",
+            ]
+            result = subprocess.run(
+                cert_cmd,
+                input=cert_content.encode(),
+                capture_output=True,
+                check=False,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                return InfraResult(False, f"Failed to copy certificate: {result.stderr.decode()}")
+
+            # Copy key to volume
+            key_cmd = [
+                "docker",
+                "run",
+                "--rm",
+                "-i",
+                "-v",
+                "devflow-certs:/certs",
+                "alpine:latest",
+                "sh",
+                "-c",
+                "cat > /certs/key.pem",
+            ]
+            result = subprocess.run(
+                key_cmd,
+                input=key_content.encode(),
+                capture_output=True,
+                check=False,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                return InfraResult(False, f"Failed to copy key: {result.stderr.decode()}")
+
+            return InfraResult(True, "Certificates synced to Docker volume")
+        except subprocess.TimeoutExpired:
+            return InfraResult(False, "Timeout while syncing certificates")
+        except subprocess.SubprocessError as e:
+            return InfraResult(False, f"Failed to sync certificates: {e}")
 
     # -------------------------------------------------------------------------
     # Traefik Management
@@ -760,7 +850,29 @@ tls:
         try:
             with open(self.projects_file) as f:
                 data = json.load(f)
-            return [RegisteredProject(**p) for p in data.get("projects", [])]
+            # Handle both formats: {"projects": [...]} and [...]
+            if isinstance(data, list):
+                projects_list = data
+            else:
+                projects_list = data.get("projects", [])
+            # Filter to only projects that have all required fields for RegisteredProject
+            valid_projects = []
+            for p in projects_list:
+                if isinstance(p, dict) and all(k in p for k in ["name", "path"]):
+                    # Add default values for optional fields
+                    project_data = {
+                        "name": p.get("name", ""),
+                        "path": str(p.get("path", "")),
+                        "domains": p.get("domains", []),
+                        "compose_files": p.get("compose_files", []),
+                        "configured_at": p.get("configured_at", ""),
+                        "backup_path": p.get("backup_path"),
+                    }
+                    try:
+                        valid_projects.append(RegisteredProject(**project_data))
+                    except TypeError:
+                        continue
+            return valid_projects
         except (json.JSONDecodeError, TypeError):
             return []
 

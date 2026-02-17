@@ -5,16 +5,25 @@ import logging
 import sys
 
 from .handlers import (
+    AgentsHandler,
+    AIHandler,
+    CodeHandler,
+    ComponentsHandler,
     ConfigHandler,
     ContextHandler,
     DatabaseHandler,
     DeployHandler,
     DevHandler,
+    DocsHandler,
+    DomainsHandler,
     InfraHandler,
+    LogsHandler,
     ProjectsHandler,
     SecretsHandler,
     SetupHandler,
     SystemHandler,
+    TemplatesHandler,
+    ToolsHandler,
 )
 from .server import RpcServer
 
@@ -49,6 +58,15 @@ def main() -> None:
     server.register_handler(DeployHandler(), "deploy")
     server.register_handler(SecretsHandler(), "secrets")
     server.register_handler(DevHandler(), "dev")
+    server.register_handler(TemplatesHandler(), "templates")
+    server.register_handler(ToolsHandler(), "tools")
+    server.register_handler(DomainsHandler(), "domains")
+    server.register_handler(LogsHandler(), "logs")
+    server.register_handler(AgentsHandler(), "agents")
+    server.register_handler(DocsHandler(), "docs")
+    server.register_handler(ComponentsHandler(), "components")
+    server.register_handler(CodeHandler(), "code")
+    server.register_handler(AIHandler(), "ai")
 
     logger.info("All handlers registered")
 

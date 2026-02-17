@@ -68,7 +68,16 @@ class ErrorCodes:
 
 @dataclass
 class OperationResult:
-    """Standard result wrapper for operations."""
+    """Standard result wrapper for operations.
+
+    Provides a consistent response format across all RPC handlers.
+    Use the class methods `ok()` and `fail()` for convenient creation.
+
+    Examples:
+        >>> OperationResult.ok("Infrastructure started")
+        >>> OperationResult.ok("Loaded 5 projects", data={"projects": [...]})
+        >>> OperationResult.fail("Docker not running")
+    """
 
     success: bool
     message: str = ""
@@ -76,8 +85,8 @@ class OperationResult:
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary."""
-        result = {"success": self.success}
+        """Convert to dictionary for JSON serialization."""
+        result: dict[str, Any] = {"success": self.success}
         if self.message:
             result["message"] = self.message
         if self.data is not None:
@@ -85,3 +94,29 @@ class OperationResult:
         if self.error:
             result["error"] = self.error
         return result
+
+    @classmethod
+    def ok(cls, message: str = "", data: Any = None) -> "OperationResult":
+        """Create a successful result.
+
+        Args:
+            message: Optional success message
+            data: Optional data payload
+
+        Returns:
+            OperationResult with success=True
+        """
+        return cls(success=True, message=message, data=data)
+
+    @classmethod
+    def fail(cls, error: str, data: Any = None) -> "OperationResult":
+        """Create a failed result.
+
+        Args:
+            error: Error description
+            data: Optional data payload (e.g., partial results)
+
+        Returns:
+            OperationResult with success=False
+        """
+        return cls(success=False, error=error, data=data)

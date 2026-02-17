@@ -331,6 +331,24 @@ CLAUDE = ToolInfo(
 )
 
 # =============================================================================
+# Build Tools
+# =============================================================================
+
+XCODEGEN = ToolInfo(
+    id="xcodegen",
+    name="XcodeGen",
+    description="Generate Xcode projects from YAML specification files",
+    category=ToolCategory.BUILD,
+    website="https://github.com/yonaskolb/XcodeGen",
+    icon="Hammer",
+    binary="xcodegen",
+    brew_package="xcodegen",
+    supports_macos=True,
+    supports_linux=False,
+    supports_windows=False,
+)
+
+# =============================================================================
 # CLI Utilities (Modern Replacements)
 # =============================================================================
 
@@ -519,6 +537,8 @@ ALL_TOOLS: list[ToolInfo] = [
     # Infrastructure
     MKCERT,
     CLAUDE,
+    # Build Tools
+    XCODEGEN,
     # CLI Utilities
     RIPGREP,
     FD,

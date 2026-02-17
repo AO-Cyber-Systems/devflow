@@ -1,0 +1,34 @@
+{
+  "name": "{{ project_name }}",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"{% if database == 'prisma' %},
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev"{% endif %}
+  },
+  "dependencies": {
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"{% if database == 'supabase' %},
+    "@supabase/supabase-js": "^2.39.0"{% endif %}{% if database == 'prisma' %},
+    "@prisma/client": "^5.8.0"{% endif %}{% if auth == 'nextauth' %},
+    "next-auth": "^4.24.5"{% endif %}
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3"{% if database == 'prisma' %},
+    "prisma": "^5.8.0"{% endif %}
+  }
+}

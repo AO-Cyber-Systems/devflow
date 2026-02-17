@@ -1,0 +1,27 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "network_exists": false,
+    "network_name": "devflow-proxy",
+    "traefik_running": false,
+    "traefik_container_id": null,
+    "traefik_url": null,
+    "certificates_valid": false,
+    "certificates_path": "/Users/justin/.devflow/certs",
+    "registered_projects": [
+      {
+        "name": "devflow",
+        "path": "/Users/justin/dev/devflow",
+        "domains": [],
+        "compose_files": [],
+        "configured_at": "2026-01-30T17:55:33.785749",
+        "backup_path": null
+      }
+    ],
+    "remote_configured": false,
+    "remote_host": null,
+    "tunnel_status": null,
+    "tunnel_latency_ms": null
+  }
+}

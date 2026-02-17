@@ -1,0 +1,26 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "version": "1",
+    "git": {
+      "user_name": null,
+      "user_email": null,
+      "co_author_enabled": true,
+      "co_author_name": "Claude",
+      "co_author_email": "noreply@anthropic.com"
+    },
+    "defaults": {
+      "secrets_provider": null,
+      "network_name": "devflow-proxy",
+      "registry": null
+    },
+    "infrastructure": {
+      "auto_start": false,
+      "traefik_http_port": 80,
+      "traefik_https_port": 443,
+      "traefik_dashboard_port": 8088
+    },
+    "setup_completed": true
+  }
+}

@@ -1,0 +1,17 @@
+version: "1"
+
+project:
+  name: {{ project_name }}
+
+development:
+  compose_file: docker-compose.yml
+  services: []
+
+database:
+  migrations:
+    directory: {{ project_name }}/migrations
+    format: sql
+
+  environments:
+    local:
+      url_env: DATABASE_URL

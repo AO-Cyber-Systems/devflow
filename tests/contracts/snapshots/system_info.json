@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "platform": "Darwin",
+    "os_version": "Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:40 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6000",
+    "devflow_version": "0.2.6",
+    "python_version": "3.12.12",
+    "docker_version": "Docker version 29.1.5, build 0e6fee6",
+    "home_dir": "/Users/justin",
+    "config_dir": "/Users/justin/.devflow"
+  }
+}

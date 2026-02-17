@@ -1,10 +1,19 @@
 """System RPC handlers - doctor, info, and utilities."""
 
 import platform
+import time
 from pathlib import Path
 from typing import Any
 
 from devflow import __version__ as devflow_version
+from devflow.doctor import (
+    check_all_packages,
+    check_package,
+    install_all_missing,
+    install_package,
+    run_doctor as run_package_doctor,
+    REQUIRED_PACKAGES,
+)
 from devflow.providers.docker import DockerProvider
 from devflow.providers.github import GitHubProvider
 from devflow.providers.mkcert import MkcertProvider
@@ -21,8 +30,8 @@ class SystemHandler:
         self._onepassword = OnePasswordProvider()
 
     def ping(self) -> dict[str, Any]:
-        """Simple ping for connection testing."""
-        return {"pong": True, "version": devflow_version}
+        """Health check endpoint with timestamp for connection testing."""
+        return {"pong": True, "version": devflow_version, "timestamp": time.time()}
 
     def version(self) -> dict[str, Any]:
         """Get DevFlow version information."""
@@ -184,4 +193,57 @@ class SystemHandler:
             "current_version": devflow_version,
             "latest_version": devflow_version,
             "update_available": False,
+        }
+
+    # Package doctor methods
+
+    def package_doctor(self, include_optional: bool = True) -> dict[str, Any]:
+        """Run doctor check on Python packages."""
+        return run_package_doctor(include_optional=include_optional)
+
+    def check_packages(self, include_optional: bool = True) -> dict[str, Any]:
+        """Check status of all required packages."""
+        checks = check_all_packages(include_optional=include_optional)
+        return {
+            "packages": [c.to_dict() for c in checks],
+            "total": len(checks),
+            "ok": sum(1 for c in checks if c.status.value == "ok"),
+            "missing": sum(1 for c in checks if c.status.value == "missing"),
+        }
+
+    def install_package(self, package_name: str) -> dict[str, Any]:
+        """Install a single package."""
+        # Validate package is in our allowed list
+        allowed_packages = [p["pip_name"] for p in REQUIRED_PACKAGES]
+        if package_name not in allowed_packages:
+            return {
+                "success": False,
+                "error": f"Package '{package_name}' is not in the allowed list",
+            }
+        return install_package(package_name)
+
+    def install_missing_packages(self, include_optional: bool = False) -> dict[str, Any]:
+        """Install all missing packages."""
+        return install_all_missing(include_optional=include_optional)
+
+    def full_doctor(self, path: str | None = None, include_optional: bool = True) -> dict[str, Any]:
+        """Run comprehensive doctor check including tools and packages."""
+        # Get tool checks from existing doctor method
+        tool_results = self.doctor(path=path)
+
+        # Get package checks
+        package_results = run_package_doctor(include_optional=include_optional)
+
+        # Combine results
+        overall_status = "healthy"
+        if tool_results["overall_status"] == "error" or package_results["overall_status"] == "error":
+            overall_status = "error"
+        elif tool_results["overall_status"] == "warning" or package_results["overall_status"] == "warning":
+            overall_status = "warning"
+
+        return {
+            "overall_status": overall_status,
+            "tools": tool_results,
+            "packages": package_results,
+            "can_auto_fix": package_results.get("can_auto_fix", False),
         }

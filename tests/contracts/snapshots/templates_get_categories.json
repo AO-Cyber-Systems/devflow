@@ -1,0 +1,44 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "categories": [
+      {
+        "id": "web",
+        "name": "Web",
+        "count": 1
+      },
+      {
+        "id": "mobile",
+        "name": "Mobile",
+        "count": 0
+      },
+      {
+        "id": "desktop",
+        "name": "Desktop",
+        "count": 0
+      },
+      {
+        "id": "fullstack",
+        "name": "Fullstack",
+        "count": 1
+      },
+      {
+        "id": "api",
+        "name": "Api",
+        "count": 2
+      },
+      {
+        "id": "library",
+        "name": "Library",
+        "count": 0
+      },
+      {
+        "id": "other",
+        "name": "Other",
+        "count": 0
+      }
+    ],
+    "total_templates": 4
+  }
+}

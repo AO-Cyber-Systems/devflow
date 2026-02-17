@@ -1,0 +1,23 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "sources": [
+      {
+        "id": "mise",
+        "name": "Mise",
+        "count": 945
+      },
+      {
+        "id": "homebrew",
+        "name": "Homebrew",
+        "count": 8175
+      },
+      {
+        "id": "cask",
+        "name": "Cask",
+        "count": 7531
+      }
+    ]
+  }
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
+from devflow.core.config import load_global_config, save_global_config
 from devflow.providers.installers import (
     ALL_TOOLS,
     ESSENTIAL_TOOLS,
@@ -376,3 +377,98 @@ class SetupHandler:
         if attr:
             return getattr(tool, attr, None)
         return None
+
+    # =========================================================================
+    # Setup Wizard Methods
+    # =========================================================================
+
+    def get_setup_wizard_status(self) -> dict[str, Any]:
+        """Check if the setup wizard has been completed.
+
+        Returns:
+            Dict with setup_completed status and essential tools status.
+        """
+        config = load_global_config()
+
+        # Also check essential tools
+        detector = self._get_detector()
+        essential_installed = 0
+        essential_total = len(ESSENTIAL_TOOLS)
+
+        for tool in ESSENTIAL_TOOLS:
+            status = detector.detect_tool(tool)
+            if status.status == InstallStatus.INSTALLED:
+                essential_installed += 1
+
+        return {
+            "setup_completed": config.setup_completed,
+            "essential_tools_installed": essential_installed,
+            "essential_tools_total": essential_total,
+            "all_essential_installed": essential_installed == essential_total,
+            "needs_setup": not config.setup_completed or essential_installed < essential_total,
+        }
+
+    def mark_setup_completed(self) -> dict[str, Any]:
+        """Mark the setup wizard as completed.
+
+        Returns:
+            Success status.
+        """
+        config = load_global_config()
+        config.setup_completed = True
+
+        if save_global_config(config):
+            return {"success": True, "setup_completed": True}
+        else:
+            return {"success": False, "error": "Failed to save configuration"}
+
+    def reset_setup_wizard(self) -> dict[str, Any]:
+        """Reset the setup wizard status (for testing/re-running).
+
+        Returns:
+            Success status.
+        """
+        config = load_global_config()
+        config.setup_completed = False
+
+        if save_global_config(config):
+            return {"success": True, "setup_completed": False}
+        else:
+            return {"success": False, "error": "Failed to save configuration"}
+
+    def get_recommended_tools(self) -> dict[str, Any]:
+        """Get recommended optional tools based on platform.
+
+        Returns:
+            List of recommended tools with their status.
+        """
+        detector = self._get_detector()
+        platform_info = self._get_platform_info()
+
+        # Define recommended tools by platform
+        recommended_ids = ["docker", "git", "gh"]
+
+        if platform_info.is_macos:
+            recommended_ids.extend(["brew", "mise"])
+        elif platform_info.is_linux:
+            recommended_ids.extend(["mise"])
+
+        results = []
+        for tool_id in recommended_ids:
+            tool = get_tool_by_id(tool_id)
+            if tool:
+                status = detector.detect_tool(tool)
+                results.append({
+                    "tool_id": tool.id,
+                    "name": tool.name,
+                    "description": tool.description,
+                    "category": tool.category.value,
+                    "status": status.status.value,
+                    "version": status.version,
+                    "essential": tool.is_essential,
+                })
+
+        return {
+            "recommended": results,
+            "total": len(results),
+        }

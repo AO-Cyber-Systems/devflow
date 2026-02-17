@@ -1,0 +1,9 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "devflow": "0.2.6",
+    "python": "3.12.12",
+    "platform": "Darwin"
+  }
+}
