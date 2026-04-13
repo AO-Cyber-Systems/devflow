@@ -45,7 +45,7 @@ dev = [
     "mypy>=1.0",
     "types-PyYAML>=6.0",
     "types-requests>=2.31.0",
-    "pre-commit>=3.0",
+    "pre-commit>=4.5.1",
 ]
 # Platform-specific dependencies (for documentation, no special deps needed)
 windows = []
