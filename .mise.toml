@@ -1,4 +1,0 @@
-[tools]
-python = "3.12"
-node = "20"
-rust = "1.83"

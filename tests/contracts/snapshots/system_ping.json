@@ -1,9 +1,0 @@
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "pong": true,
-    "version": "0.2.6",
-    "timestamp": 1769879023.137026
-  }
-}
